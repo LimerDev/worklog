@@ -1,3 +1,6 @@
+# Env
+.env
+
 # Binaries
 timetrack
 *.exe
