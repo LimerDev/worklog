@@ -39,6 +39,39 @@ func (r *Repository) GetAllTimeEntries() ([]models.TimeEntry, error) {
 	return entries, err
 }
 
+// GetTimeEntriesByFilters retrieves time entries with flexible filtering
+func (r *Repository) GetTimeEntriesByFilters(consultantName, projectName, customerName string, startDate, endDate time.Time) ([]models.TimeEntry, error) {
+	var entries []models.TimeEntry
+	query := r.db.Preload("Project.Customer").Preload("Consultant")
+
+	// Filter by consultant
+	if consultantName != "" {
+		query = query.Where("consultant_id IN (SELECT id FROM consultants WHERE name = ?)", consultantName)
+	}
+
+	// Filter by project
+	if projectName != "" {
+		query = query.Where("project_id IN (SELECT id FROM projects WHERE name = ?)", projectName)
+	}
+
+	// Filter by customer
+	if customerName != "" {
+		query = query.Where("project_id IN (SELECT p.id FROM projects p JOIN customers c ON c.id = p.customer_id WHERE c.name = ?)", customerName)
+	}
+
+	// Filter by date range
+	if !startDate.IsZero() && !endDate.IsZero() {
+		query = query.Where("date >= ? AND date < ?", startDate, endDate)
+	} else if !startDate.IsZero() {
+		query = query.Where("date >= ?", startDate)
+	} else if !endDate.IsZero() {
+		query = query.Where("date < ?", endDate)
+	}
+
+	err := query.Order("date asc").Find(&entries).Error
+	return entries, err
+}
+
 func (r *Repository) DeleteTimeEntry(id uint) error {
 	return r.db.Delete(&models.TimeEntry{}, id).Error
 }

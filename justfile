@@ -117,8 +117,43 @@ test-report: build
     @echo "Generating monthly report..."
     sh -c "{{test_env}} ./bin/worklog report"
 
-# Run full test: build, add sample data, generate report
-test-full: build test-add test-report
+# Get all entries
+test-get-all: build
+    @echo "Getting all time entries..."
+    sh -c "{{test_env}} ./bin/worklog get"
+
+# Get entries for specific consultant
+test-get-consultant: build
+    @echo "Getting entries for Alice Johnson..."
+    sh -c "{{test_env}} ./bin/worklog get -n 'Alice Johnson'"
+
+# Get entries for specific customer
+test-get-customer: build
+    @echo "Getting entries for ACME Corp..."
+    sh -c "{{test_env}} ./bin/worklog get -c 'ACME Corp'"
+
+# Get entries for specific date
+test-get-date: build
+    @echo "Getting entries for 2025-12-05..."
+    sh -c "{{test_env}} ./bin/worklog get -D 2025-12-05"
+
+# Get entries with combined filters
+test-get-combined: build
+    @echo "Getting entries for Alice Johnson in E-Commerce Platform project..."
+    sh -c "{{test_env}} ./bin/worklog get -n 'Alice Johnson' -p 'E-Commerce Platform'"
+
+# Get today's entries
+test-get-today: build
+    @echo "Getting today's entries..."
+    sh -c "{{test_env}} ./bin/worklog get --today"
+
+# Get today's entries for specific consultant
+test-get-today-consultant: build
+    @echo "Getting today's entries for Alice Johnson..."
+    sh -c "{{test_env}} ./bin/worklog get --today -n 'Alice Johnson'"
+
+# Run full test: build, add sample data, generate reports and test get commands
+test-full: build test-add test-report test-get-all test-get-consultant test-get-customer test-get-date test-get-combined test-get-today test-get-today-consultant
 
 # Show all available commands
 list:
