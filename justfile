@@ -1,45 +1,64 @@
-binary_name := "timetrack"
-docker_image := "your-registry/timetrack"
+binary_name := "worklog"
+docker_image := "your-registry/worklog"
 version := env_var_or_default("VERSION", "latest")
 
-# Bygg applikationen
+# Build application
 build:
-    go build -o {{binary_name}} main.go
+    mkdir -p bin
+    go build -o bin/{{binary_name}} main.go
 
-# Kör applikationen
+# Build with optimizations (release)
+build-release:
+    mkdir -p bin
+    go build -ldflags="-s -w" -o bin/{{binary_name}} main.go
+    upx --best --lzma bin/{{binary_name}} || true
+
+# Install to ~/.local/bin
+install: build-release
+    mkdir -p ~/.local/bin
+    cp bin/{{binary_name}} ~/.local/bin/
+    chmod +x ~/.local/bin/{{binary_name}}
+    @echo "Installed {{binary_name}} to ~/.local/bin"
+
+# Uninstall from ~/.local/bin
+uninstall:
+    rm -f ~/.local/bin/{{binary_name}}
+    @echo "Uninstalled {{binary_name}} from ~/.local/bin"
+
+# Run application
 run *args:
     go run main.go {{args}}
 
-# Rensa byggfiler
+# Clean build files
 clean:
     go clean
-    rm -f {{binary_name}}
+    rm -rf bin/
 
-# Bygg Docker-imagen
+# Build Docker image
 docker-build:
     docker build -t {{docker_image}}:{{version}} .
 
-# Bygg och pusha Docker-imagen
+# Build and push Docker image
 docker-push: docker-build
     docker push {{docker_image}}:{{version}}
 
-# Deploya till Kubernetes
+# Deploy to Kubernetes
 k8s-deploy:
     kubectl apply -f k8s/namespace.yaml
     kubectl apply -f k8s/postgres.yaml
-    kubectl apply -f k8s/timetrack.yaml
+    kubectl apply -f k8s/worklog.yaml
 
-# Ta bort från Kubernetes
+# Remove from Kubernetes
 k8s-delete:
-    kubectl delete -f k8s/timetrack.yaml
+    kubectl delete -f k8s/worklog.yaml
     kubectl delete -f k8s/postgres.yaml
     kubectl delete -f k8s/namespace.yaml
 
-# Kör tester
+# Run tests
 test:
     go test -v ./...
 
-# Hämta och organisera dependencies
+# Download and organize dependencies
 deps:
     go mod download
     go mod tidy
@@ -67,39 +86,39 @@ db-logs:
     docker-compose logs -f postgres
 
 # Configure default values for quick time tracking
-config-set:
-    ./timetrack config set -n "Alice Johnson" -c "ACME Corp" -p "E-Commerce Platform" -r 650
+config-set: build
+    ./bin/worklog config set -n "Alice Johnson" -c "ACME Corp" -p "E-Commerce Platform" -r 650
 
 # View current configuration
-config-show:
-    ./timetrack config
+config-show: build
+    ./bin/worklog config
 
 # Clear configuration
-config-clear:
-    ./timetrack config clear
+config-clear: build
+    ./bin/worklog config clear
 
 # Add sample data for testing
-test-add:
+test-add: build
     @echo "Adding sample time entries..."
-    ./timetrack add -t 8 -d "Backend API development" -p "E-Commerce Platform" -c "ACME Corp" -n "Alice Johnson" -r 650
-    ./timetrack add -t 6 -d "Frontend design improvements" -p "E-Commerce Platform" -c "ACME Corp" -n "Bob Smith" -r 600
-    ./timetrack add -t 4.5 -d "Bug fixes and testing" -p "Mobile App" -c "TechStart AB" -n "Alice Johnson" -r 650
-    ./timetrack add -t 7.5 -d "Database optimization" -p "Data Pipeline" -c "TechStart AB" -n "Charlie Davis" -r 750
-    ./timetrack add -t 5 -d "UI/UX improvements" -p "Dashboard" -c "WebDev Inc" -n "Bob Smith" -r 600
+    ./bin/worklog add -t 8 -d "Backend API development" -p "E-Commerce Platform" -c "ACME Corp" -n "Alice Johnson" -r 650
+    ./bin/worklog add -t 6 -d "Frontend design improvements" -p "E-Commerce Platform" -c "ACME Corp" -n "Bob Smith" -r 600
+    ./bin/worklog add -t 4.5 -d "Bug fixes and testing" -p "Mobile App" -c "TechStart AB" -n "Alice Johnson" -r 650
+    ./bin/worklog add -t 7.5 -d "Database optimization" -p "Data Pipeline" -c "TechStart AB" -n "Charlie Davis" -r 750
+    ./bin/worklog add -t 5 -d "UI/UX improvements" -p "Dashboard" -c "WebDev Inc" -n "Bob Smith" -r 600
     @echo "✓ Sample data added successfully"
 
 # Add quick test entry using defaults
-test-quick:
-    ./timetrack add -t 3 -d "Quick task"
+test-quick: build
+    ./bin/worklog add -t 3 -d "Quick task"
 
 # Generate monthly report
-test-report:
+test-report: build
     @echo "Generating monthly report..."
-    ./timetrack report
+    ./bin/worklog report
 
 # Run full test: build, add sample data, generate report
 test-full: build test-add test-report
 
-# Visa alla tillgängliga kommandon
+# Show all available commands
 list:
     @just --list
