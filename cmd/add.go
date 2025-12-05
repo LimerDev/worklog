@@ -5,19 +5,19 @@ import (
 	"time"
 
 	"github.com/LimerDev/worklog/internal/config"
-	"github.com/LimerDev/worklog/internal/db"
+	"github.com/LimerDev/worklog/internal/database"
 	"github.com/LimerDev/worklog/internal/models"
 	"github.com/spf13/cobra"
 )
 
 var (
-	hours      float64
+	hours       float64
 	description string
-	project    string
-	client     string
-	consultant string
-	hourlyRate float64
-	date       string
+	project     string
+	client      string
+	consultant  string
+	hourlyRate  float64
+	date        string
 )
 
 var addCmd = &cobra.Command{
@@ -92,7 +92,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("timmar måste vara större än 0")
 	}
 
-	repo := db.NewRepository()
+	repo := database.NewRepository()
 
 	// Get or create consultant
 	consultantObj, err := repo.GetOrCreateConsultant(consultant)

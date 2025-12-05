@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/LimerDev/worklog/internal/config"
-	"github.com/LimerDev/worklog/internal/db"
+	db "github.com/LimerDev/worklog/internal/database"
 	"github.com/spf13/cobra"
 )
 

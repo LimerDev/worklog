@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/LimerDev/worklog/internal/db"
+	"github.com/LimerDev/worklog/internal/database"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +42,7 @@ func runReport(cmd *cobra.Command, args []string) error {
 		month = parsedDate.Month()
 	}
 
-	repo := db.NewRepository()
+	repo := database.NewRepository()
 	entries, err := repo.GetTimeEntriesByMonth(year, month)
 	if err != nil {
 		return fmt.Errorf("kunde inte hämta tidsregistreringar: %w", err)
