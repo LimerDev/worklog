@@ -5,9 +5,9 @@ A simple CLI application for time tracking and consultant billing, written in Go
 ## Features
 
 - ✅ Register time entries with hours, description, project, client, and consultant
-- ✅ Manage consultants with individual hourly rates
+- ✅ Flexible filtering and retrieval of time entries by consultant, project, customer, date, or date range
+- ✅ Hourly rates stored per time entry for cost calculation with historical accuracy
 - ✅ Calculate costs based on hourly rates and worked hours
-- ✅ Generate monthly reports with financial summaries
 - ✅ Normalized database structure: Client → Project → Time Entry
 - ✅ PostgreSQL database for storage
 - ✅ Kubernetes deployment support for cluster hosting
@@ -119,24 +119,57 @@ worklog add -t 8 -d "Development" -p "Project A" -c "Client AB" -n "Alice Johnso
 
 Configuration file location: `~/.worklog/config.json`
 
-### Generate monthly report
+### Retrieve and filter time entries
 
-Current month:
+Get all time entries:
 ```bash
-worklog report
+worklog get
 ```
 
-Specific month:
+Get entries for a specific consultant:
 ```bash
-worklog report --month 2025-11
+worklog get -n "Alice Johnson"
 ```
 
-The report shows:
-- All time entries with consultant, hours, and calculated costs
-- Total hours and total costs
-- Summary per consultant (hours and costs)
-- Summary per project (hours and costs)
-- Summary per client (hours and costs)
+Get entries for a specific project:
+```bash
+worklog get -p "E-Commerce Platform"
+```
+
+Get entries for a specific customer:
+```bash
+worklog get -c "ACME Corp"
+```
+
+Get entries for a specific date:
+```bash
+worklog get -D 2025-11-29
+```
+
+Get entries for a specific month:
+```bash
+worklog get -m 2025-11
+```
+
+Get entries for a date range:
+```bash
+worklog get --from 2025-11-01 --to 2025-11-30
+```
+
+Get today's entries:
+```bash
+worklog get --today
+```
+
+Combine multiple filters:
+```bash
+worklog get -n "Alice Johnson" -p "E-Commerce Platform"
+worklog get --today -c "ACME Corp"
+```
+
+The output shows:
+- Table with all matching time entries (date, consultant, hours, rate, cost, project, customer, description)
+- Total hours and costs
 
 ### Using with Kubernetes
 
@@ -147,8 +180,8 @@ Run commands in the K8s pod:
 kubectl exec -it -n worklog deployment/worklog -- ./worklog add \
   -t 8 -d "Development" -p "Project A" -c "Client AB" -n "Consultant" -r 650
 
-# Generate report
-kubectl exec -it -n worklog deployment/worklog -- ./worklog report
+# Retrieve time entries
+kubectl exec -it -n worklog deployment/worklog -- ./worklog get -n "Consultant"
 ```
 
 Alternatively, create a shell alias:
@@ -157,7 +190,7 @@ alias worklog='kubectl exec -it -n worklog deployment/worklog -- ./worklog'
 
 # Now you can run:
 worklog add -t 8 -d "Development" -p "Project A" -c "Client AB" -n "Consultant" -r 650
-worklog report
+worklog get -n "Consultant"
 ```
 
 ## Configuration
@@ -258,10 +291,10 @@ just db-reset    # Reset database (delete all data)
 just db-logs     # Show database logs
 
 # Test commands (automatically use test database)
-just test-add    # Add sample test data
-just test-quick  # Add a quick test entry
-just test-report # Generate test report
-just test-full   # Build + add sample data + generate report
+just test-add         # Add sample test data
+just test-quick       # Add a quick test entry
+just test-get-all     # Get all time entries
+just test-full        # Build + add sample data + run all get tests
 ```
 
 ## Development
@@ -297,8 +330,8 @@ just test-full   # Build + add sample data + generate report
 
    # Run the application with test database (all test commands use test DB automatically)
    just test-add      # Add sample data
-   just test-report   # Generate report
-   just test-full     # Build + add data + report
+   just test-get-all  # Get all time entries
+   just test-full     # Build + add data + run all get tests
 
    # Stop the database
    docker-compose down
@@ -317,10 +350,10 @@ just build
 go test ./...
 
 # Test with sample data (uses test database configuration)
-just test-full     # Builds, adds sample data, and generates report
-just test-report   # Generate report from existing data
-just test-add      # Add more sample data
-just test-quick    # Add a quick single test entry
+just test-full      # Builds, adds sample data, and runs all get tests
+just test-add       # Add more sample data
+just test-quick     # Add a quick single test entry
+just test-get-all   # Get and display all time entries
 ```
 
 ## License
