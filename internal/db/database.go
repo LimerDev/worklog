@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/LimerDev/worklog/internal/config"
 	"github.com/LimerDev/worklog/internal/models"
@@ -50,7 +49,6 @@ func Connect(cfg *config.Config) error {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	log.Println("Database connection established")
 	return nil
 }
 
