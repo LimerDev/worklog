@@ -57,17 +57,12 @@ func init() {
 }
 
 func runConfigShow(cmd *cobra.Command, args []string) error {
-	cfg, err := config.Load()
+	cfg, err := config.Get()
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	configPath, err := config.GetConfigPath()
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("Configuration file: %s\n\n", configPath)
+	fmt.Printf("Configuration:\n\n")
 
 	if cfg.DefaultConsultant == "" && cfg.DefaultClient == "" && cfg.DefaultProject == "" && cfg.DefaultRate == 0 {
 		fmt.Println("No defaults configured yet.")
@@ -111,31 +106,12 @@ func runConfigSet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("you must specify at least one value")
 	}
 
-	cfg, err := config.Load()
+	if err := config.SaveDefaults(configConsultant, configClient, configProject, configRate); err != nil {
+		return err
+	}
+
+	cfg, err := config.Get()
 	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
-	}
-
-	cfg.SetDefaults(configConsultant, configClient, configProject, configRate)
-
-	// Set database configuration if provided
-	if configDBHost != "" {
-		cfg.Database.Host = configDBHost
-	}
-	if configDBPort != "" {
-		cfg.Database.Port = configDBPort
-	}
-	if configDBUser != "" {
-		cfg.Database.User = configDBUser
-	}
-	if configDBPassword != "" {
-		cfg.Database.Password = configDBPassword
-	}
-	if configDBName != "" {
-		cfg.Database.Name = configDBName
-	}
-
-	if err := cfg.Save(); err != nil {
 		return err
 	}
 
@@ -145,26 +121,11 @@ func runConfigSet(cmd *cobra.Command, args []string) error {
 	fmt.Printf("  Project: %s\n", cfg.DefaultProject)
 	fmt.Printf("  Hourly Rate: %.2f kr/h\n", cfg.DefaultRate)
 
-	if cfg.Database.Host != "" || cfg.Database.Port != "" || cfg.Database.User != "" || cfg.Database.Name != "" {
-		fmt.Println("\n  Database:")
-		fmt.Printf("    Host: %s\n", cfg.Database.Host)
-		fmt.Printf("    Port: %s\n", cfg.Database.Port)
-		fmt.Printf("    User: %s\n", cfg.Database.User)
-		fmt.Printf("    Name: %s\n", cfg.Database.Name)
-	}
-
 	return nil
 }
 
 func runConfigClear(cmd *cobra.Command, args []string) error {
-	cfg, err := config.Load()
-	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
-	}
-
-	cfg.ClearDefaults()
-
-	if err := cfg.Save(); err != nil {
+	if err := config.ClearDefaults(); err != nil {
 		return err
 	}
 

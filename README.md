@@ -33,8 +33,17 @@ go build -o worklog
 # Build Docker image
 docker build -t worklog:latest .
 
-# Run with Docker (requires PostgreSQL)
-docker run -e DB_HOST=localhost -e DB_PASSWORD=yourpassword worklog add --help
+# Run with Docker (requires PostgreSQL and ~/.worklog/config.json)
+docker run \
+  -v ~/.worklog:/root/.worklog \
+  worklog add --help
+
+# Or use environment variables to override config
+docker run \
+  -e WORKLOG_DATABASE_HOST=db.example.com \
+  -e WORKLOG_DATABASE_PASSWORD=yourpassword \
+  -v ~/.worklog:/root/.worklog \
+  worklog add --help
 ```
 
 ### Kubernetes
@@ -151,15 +160,53 @@ worklog add -t 8 -d "Development" -p "Project A" -c "Client AB" -n "Consultant" 
 worklog report
 ```
 
-## Environment Variables
+## Configuration
 
-The application uses the following environment variables for database configuration:
+### Configuration File
 
-- `DB_HOST` - Database host (default: localhost)
-- `DB_PORT` - Database port (default: 5432)
-- `DB_USER` - Database user (default: worklog)
-- `DB_PASSWORD` - Database password (default: worklog)
-- `DB_NAME` - Database name (default: worklog)
+The application reads configuration from `~/.worklog/config.json`:
+
+```json
+{
+  "default_consultant": "Your Name",
+  "default_client": "Client Name",
+  "default_project": "Project Name",
+  "default_rate": 650,
+  "database": {
+    "host": "192.168.0.20",
+    "port": "30432",
+    "user": "wl_admin",
+    "password": "your-secure-password",
+    "name": "worklog"
+  }
+}
+```
+
+### Environment Variables
+
+Database configuration can be overridden with environment variables (prefix: `WORKLOG_`):
+
+- `WORKLOG_DATABASE_HOST` - Database host
+- `WORKLOG_DATABASE_PORT` - Database port
+- `WORKLOG_DATABASE_USER` - Database user
+- `WORKLOG_DATABASE_PASSWORD` - Database password
+- `WORKLOG_DATABASE_NAME` - Database name
+- `WORKLOG_DEFAULT_CONSULTANT` - Default consultant name
+- `WORKLOG_DEFAULT_CLIENT` - Default client name
+- `WORKLOG_DEFAULT_PROJECT` - Default project name
+- `WORKLOG_DEFAULT_RATE` - Default hourly rate
+
+**Example with test database:**
+```bash
+WORKLOG_DATABASE_HOST=localhost \
+WORKLOG_DATABASE_PORT=5432 \
+WORKLOG_DATABASE_USER=testuser \
+WORKLOG_DATABASE_PASSWORD=testpass \
+WORKLOG_DATABASE_NAME=testdb \
+worklog report
+```
+
+All test commands automatically use the test database configuration from the environment variables.
 
 ## Security
 
@@ -174,6 +221,7 @@ stringData:
 
 - **Go** - Programming language
 - **Cobra** - CLI framework
+- **Viper** - Configuration management
 - **GORM** - ORM for database operations
 - **PostgreSQL** - Database
 - **Docker** - Containerization
@@ -209,55 +257,52 @@ just db-stop     # Stop the database
 just db-reset    # Reset database (delete all data)
 just db-logs     # Show database logs
 
-# Test commands
+# Test commands (automatically use test database)
 just test-add    # Add sample test data
+just test-quick  # Add a quick test entry
 just test-report # Generate test report
 just test-full   # Build + add sample data + generate report
 ```
 
 ## Development
 
-### Run locally with PostgreSQL in Docker
+### Local Setup
 
-#### With Docker Compose (recommended)
+1. **Create config file:**
+   ```bash
+   mkdir -p ~/.worklog
 
-```bash
-# Start PostgreSQL database
-docker-compose up -d
+   # Create config.json with your database details
+   cat > ~/.worklog/config.json << 'EOF'
+   {
+     "default_consultant": "Your Name",
+     "default_client": "Your Client",
+     "default_project": "Your Project",
+     "default_rate": 650,
+     "database": {
+       "host": "your-db-host",
+       "port": "5432",
+       "user": "your-user",
+       "password": "your-password",
+       "name": "worklog"
+     }
+   }
+   EOF
+   ```
 
-# Wait for database to be ready
-docker-compose ps
+2. **Run with Docker Compose (optional):**
+   ```bash
+   # Start PostgreSQL
+   docker-compose up -d
 
-# Copy .env.example to .env if not already done
-cp .env.example .env
+   # Run the application with test database (all test commands use test DB automatically)
+   just test-add      # Add sample data
+   just test-report   # Generate report
+   just test-full     # Build + add data + report
 
-# Run the application
-go run main.go add -t 8 -d "Test" -p "Project" -c "Client" -n "Consultant" -r 650
-go run main.go report
-
-# Stop the database when done
-docker-compose down
-
-# Remove data as well (permanent deletion)
-docker-compose down -v
-```
-
-#### With docker run
-
-```bash
-# Start PostgreSQL
-docker run -d \
-  --name worklog-db \
-  -e POSTGRES_USER=worklog \
-  -e POSTGRES_PASSWORD=worklog \
-  -e POSTGRES_DB=worklog \
-  -p 5432:5432 \
-  postgres:16-alpine
-
-# Run the application
-go run main.go add -t 8 -d "Test" -p "Project" -c "Client" -n "Consultant" -r 650
-go run main.go report
-```
+   # Stop the database
+   docker-compose down
+   ```
 
 ### Build and test
 
@@ -265,11 +310,17 @@ go run main.go report
 # Download dependencies
 go mod tidy
 
+# Build
+just build
+
 # Run tests (when implemented)
 go test ./...
 
-# Build
-go build -o worklog
+# Test with sample data (uses test database configuration)
+just test-full     # Builds, adds sample data, and generates report
+just test-report   # Generate report from existing data
+just test-add      # Add more sample data
+just test-quick    # Add a quick single test entry
 ```
 
 ## License

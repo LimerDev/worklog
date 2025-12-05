@@ -1,111 +1,128 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/spf13/viper"
 )
 
 // Config holds user configuration
 type Config struct {
-	DefaultConsultant string  `json:"default_consultant"`
-	DefaultClient     string  `json:"default_client"`
-	DefaultProject    string  `json:"default_project"`
-	DefaultRate       float64 `json:"default_rate"`
-	Database          Database `json:"database"`
+	DefaultConsultant string   `mapstructure:"default_consultant"`
+	DefaultClient     string   `mapstructure:"default_client"`
+	DefaultProject    string   `mapstructure:"default_project"`
+	DefaultRate       float64  `mapstructure:"default_rate"`
+	Database          Database `mapstructure:"database"`
 }
 
 // Database holds database configuration
 type Database struct {
-	Host     string `json:"host"`
-	Port     string `json:"port"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
+	Host     string `mapstructure:"host"`
+	Port     string `mapstructure:"port"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
+	Name     string `mapstructure:"name"`
 }
 
-// GetConfigPath returns the path to the config file
-func GetConfigPath() (string, error) {
+var v *viper.Viper
+
+// Initialize loads configuration from config files
+func Initialize() error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return "", err
+		return err
 	}
+
 	configDir := filepath.Join(homeDir, ".worklog")
-	configFile := filepath.Join(configDir, "config.json")
-	return configFile, nil
+
+	v = viper.New()
+	v.AddConfigPath(configDir)
+	v.SetConfigName("config")
+	v.SetConfigType("json")
+
+	// Load config
+	if err := v.ReadInConfig(); err != nil {
+		return fmt.Errorf("failed to read config: %w", err)
+	}
+
+	// Bind environment variables - they override config file values
+	v.SetEnvPrefix("WORKLOG")
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	// Explicitly bind all environment variables to config keys
+	v.BindEnv("database.host")
+	v.BindEnv("database.port")
+	v.BindEnv("database.user")
+	v.BindEnv("database.password")
+	v.BindEnv("database.name")
+	v.BindEnv("default_consultant")
+	v.BindEnv("default_client")
+	v.BindEnv("default_project")
+	v.BindEnv("default_rate")
+
+	return nil
 }
 
-// Load reads the config from file
-func Load() (*Config, error) {
-	configPath, err := GetConfigPath()
-	if err != nil {
-		return &Config{}, err
+// Get returns the current configuration
+func Get() (*Config, error) {
+	cfg := &Config{}
+	if err := v.Unmarshal(cfg); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
-
-	data, err := os.ReadFile(configPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return &Config{}, nil
-		}
-		return nil, err
-	}
-
-	config := &Config{}
-	err = json.Unmarshal(data, config)
-	if err != nil {
-		return nil, err
-	}
-
-	return config, nil
+	return cfg, nil
 }
 
-// Save writes the config to file
-func (c *Config) Save() error {
-	configPath, err := GetConfigPath()
+// SaveDefaults writes default values to config file
+func SaveDefaults(consultant, client, project string, rate float64) error {
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
 
-	configDir := filepath.Dir(configPath)
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		return err
+	configPath := filepath.Join(homeDir, ".worklog", "config.json")
+
+	// Update viper instance
+	if consultant != "" {
+		v.Set("default_consultant", consultant)
+	}
+	if client != "" {
+		v.Set("default_client", client)
+	}
+	if project != "" {
+		v.Set("default_project", project)
+	}
+	if rate > 0 {
+		v.Set("default_rate", rate)
 	}
 
-	data, err := json.MarshalIndent(c, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(configPath, data, 0644)
-	if err != nil {
+	// Write to file
+	if err := v.WriteConfigAs(configPath); err != nil {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
 	return nil
 }
 
-// SetDefaults updates the default values
-func (c *Config) SetDefaults(consultant, client, project string, rate float64) {
-	if consultant != "" {
-		c.DefaultConsultant = consultant
+// ClearDefaults removes defaults from config file
+func ClearDefaults() error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
 	}
-	if client != "" {
-		c.DefaultClient = client
-	}
-	if project != "" {
-		c.DefaultProject = project
-	}
-	if rate > 0 {
-		c.DefaultRate = rate
-	}
-}
 
-// ClearDefaults clears the saved configuration
-func (c *Config) ClearDefaults() {
-	c.DefaultConsultant = ""
-	c.DefaultClient = ""
-	c.DefaultProject = ""
-	c.DefaultRate = 0
-	c.Database = Database{}
+	configPath := filepath.Join(homeDir, ".worklog", "config.json")
+
+	v.Set("default_consultant", "")
+	v.Set("default_client", "")
+	v.Set("default_project", "")
+	v.Set("default_rate", 0)
+
+	if err := v.WriteConfigAs(configPath); err != nil {
+		return fmt.Errorf("failed to clear config: %w", err)
+	}
+
+	return nil
 }

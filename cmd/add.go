@@ -43,8 +43,8 @@ func init() {
 }
 
 func runAdd(cmd *cobra.Command, args []string) error {
-	// Load configuration
-	cfg, err := config.Load()
+	// Get configuration
+	cfg, err := config.Get()
 	if err != nil {
 		return fmt.Errorf("kunde inte läsa konfiguration: %w", err)
 	}

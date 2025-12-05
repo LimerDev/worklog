@@ -23,13 +23,20 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initDB)
+	cobra.OnInitialize(initConfig, initDB)
+}
+
+func initConfig() {
+	if err := config.Initialize(); err != nil {
+		fmt.Fprintf(os.Stderr, "Kunde inte ladda konfiguration: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func initDB() {
-	cfg, err := config.Load()
+	cfg, err := config.Get()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Kunde inte ladda konfiguration: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Kunde inte läsa konfiguration: %v\n", err)
 		os.Exit(1)
 	}
 

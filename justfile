@@ -1,6 +1,7 @@
 binary_name := "worklog"
 docker_image := "your-registry/worklog"
 version := env_var_or_default("VERSION", "latest")
+test_env := "WORKLOG_DATABASE_HOST=localhost WORKLOG_DATABASE_PORT=5432 WORKLOG_DATABASE_USER=worklog WORKLOG_DATABASE_PASSWORD=worklog WORKLOG_DATABASE_NAME=worklog"
 
 # Build application
 build:
@@ -100,21 +101,21 @@ config-clear: build
 # Add sample data for testing
 test-add: build
     @echo "Adding sample time entries..."
-    ./bin/worklog add -t 8 -d "Backend API development" -p "E-Commerce Platform" -c "ACME Corp" -n "Alice Johnson" -r 650
-    ./bin/worklog add -t 6 -d "Frontend design improvements" -p "E-Commerce Platform" -c "ACME Corp" -n "Bob Smith" -r 600
-    ./bin/worklog add -t 4.5 -d "Bug fixes and testing" -p "Mobile App" -c "TechStart AB" -n "Alice Johnson" -r 650
-    ./bin/worklog add -t 7.5 -d "Database optimization" -p "Data Pipeline" -c "TechStart AB" -n "Charlie Davis" -r 750
-    ./bin/worklog add -t 5 -d "UI/UX improvements" -p "Dashboard" -c "WebDev Inc" -n "Bob Smith" -r 600
+    sh -c "{{test_env}} ./bin/worklog add -t 8 -d 'Backend API development' -p 'E-Commerce Platform' -c 'ACME Corp' -n 'Alice Johnson' -r 650"
+    sh -c "{{test_env}} ./bin/worklog add -t 6 -d 'Frontend design improvements' -p 'E-Commerce Platform' -c 'ACME Corp' -n 'Bob Smith' -r 600"
+    sh -c "{{test_env}} ./bin/worklog add -t 4.5 -d 'Bug fixes and testing' -p 'Mobile App' -c 'TechStart AB' -n 'Alice Johnson' -r 650"
+    sh -c "{{test_env}} ./bin/worklog add -t 7.5 -d 'Database optimization' -p 'Data Pipeline' -c 'TechStart AB' -n 'Charlie Davis' -r 750"
+    sh -c "{{test_env}} ./bin/worklog add -t 5 -d 'UI/UX improvements' -p 'Dashboard' -c 'WebDev Inc' -n 'Bob Smith' -r 600"
     @echo "✓ Sample data added successfully"
 
 # Add quick test entry using defaults
 test-quick: build
-    ./bin/worklog add -t 3 -d "Quick task"
+    sh -c "{{test_env}} ./bin/worklog add -t 3 -d 'Quick task'"
 
 # Generate monthly report
 test-report: build
     @echo "Generating monthly report..."
-    ./bin/worklog report
+    sh -c "{{test_env}} ./bin/worklog report"
 
 # Run full test: build, add sample data, generate report
 test-full: build test-add test-report

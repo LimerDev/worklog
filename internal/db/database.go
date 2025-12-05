@@ -3,7 +3,6 @@ package db
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/LimerDev/worklog/internal/config"
 	"github.com/LimerDev/worklog/internal/models"
@@ -15,26 +14,28 @@ import (
 var DB *gorm.DB
 
 func Connect(cfg *config.Config) error {
-	// Use config database settings, with environment variable overrides
-	host := getEnv("DB_HOST", cfg.Database.Host)
+	// Read database configuration from config
+	host := cfg.Database.Host
+	port := cfg.Database.Port
+	user := cfg.Database.User
+	password := cfg.Database.Password
+	dbname := cfg.Database.Name
+
+	// Require all database configuration values
 	if host == "" {
-		host = "localhost"
+		return fmt.Errorf("database.host is required in config file (~/.worklog/config.json or ~/.worklog/config.local.json)")
 	}
-	port := getEnv("DB_PORT", cfg.Database.Port)
 	if port == "" {
-		port = "5432"
+		return fmt.Errorf("database.port is required in config file (~/.worklog/config.json or ~/.worklog/config.local.json)")
 	}
-	user := getEnv("DB_USER", cfg.Database.User)
 	if user == "" {
-		user = "worklog"
+		return fmt.Errorf("database.user is required in config file (~/.worklog/config.json or ~/.worklog/config.local.json)")
 	}
-	password := getEnv("DB_PASSWORD", cfg.Database.Password)
 	if password == "" {
-		password = "worklog"
+		return fmt.Errorf("database.password is required in config file (~/.worklog/config.json or ~/.worklog/config.local.json)")
 	}
-	dbname := getEnv("DB_NAME", cfg.Database.Name)
 	if dbname == "" {
-		dbname = "worklog"
+		return fmt.Errorf("database.name is required in config file (~/.worklog/config.json or ~/.worklog/config.local.json)")
 	}
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
@@ -60,12 +61,4 @@ func AutoMigrate() error {
 		&models.Consultant{},
 		&models.TimeEntry{},
 	)
-}
-
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
-	}
-	return value
 }

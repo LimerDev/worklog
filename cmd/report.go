@@ -71,19 +71,21 @@ func runReport(cmd *cobra.Command, args []string) error {
 	var totalHours float64
 	var totalCost float64
 
-	fmt.Printf("%-12s %-15s %-8s %-12s %-20s %-20s %s\n", "Datum", "Konsult", "Timmar", "Kostnad", "Projekt", "Kund", "Beskrivning")
-	fmt.Printf("%-12s %-15s %-8s %-12s %-20s %-20s %s\n", "─────────", "───────────────", "──────", "──────────", "────────────────", "────────────────", "────────────")
+	fmt.Printf("%-12s %-15s %-8s %-10s %-12s %-20s %-20s %s\n", "Datum", "Konsult", "Timmar", "Timpris", "Kostnad", "Projekt", "Kund", "Beskrivning")
+	fmt.Printf("%-12s %-15s %-8s %-10s %-12s %-20s %-20s %s\n", "─────────", "───────────────", "──────", "────────", "──────────", "────────────────", "────────────────", "────────────")
 
 	for _, entry := range entries {
 		projectName := entry.Project.Name
 		customerName := entry.Project.Customer.Name
 		consultantName := entry.Consultant.Name
-		cost := entry.Hours * entry.Consultant.HourlyRate
+		hourlyRate := entry.Consultant.HourlyRate
+		cost := entry.Hours * hourlyRate
 
-		fmt.Printf("%-12s %-15s %-8.2f %-12.2f %-20s %-20s %s\n",
+		fmt.Printf("%-12s %-15s %-8.2f %-10.2f %-12.2f %-20s %-20s %s\n",
 			entry.Date.Format("2006-01-02"),
 			truncate(consultantName, 15),
 			entry.Hours,
+			hourlyRate,
 			cost,
 			truncate(projectName, 20),
 			truncate(customerName, 20),
