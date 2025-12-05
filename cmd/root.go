@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/LimerDev/worklog/internal/config"
 	"github.com/LimerDev/worklog/internal/db"
 	"github.com/spf13/cobra"
 )
@@ -26,7 +27,13 @@ func init() {
 }
 
 func initDB() {
-	if err := db.Connect(); err != nil {
+	cfg, err := config.Load()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Kunde inte ladda konfiguration: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := db.Connect(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "Kunde inte ansluta till databasen: %v\n", err)
 		os.Exit(1)
 	}

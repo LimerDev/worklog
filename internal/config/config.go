@@ -13,6 +13,16 @@ type Config struct {
 	DefaultClient     string  `json:"default_client"`
 	DefaultProject    string  `json:"default_project"`
 	DefaultRate       float64 `json:"default_rate"`
+	Database          Database `json:"database"`
+}
+
+// Database holds database configuration
+type Database struct {
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Name     string `json:"name"`
 }
 
 // GetConfigPath returns the path to the config file
@@ -97,4 +107,5 @@ func (c *Config) ClearDefaults() {
 	c.DefaultClient = ""
 	c.DefaultProject = ""
 	c.DefaultRate = 0
+	c.Database = Database{}
 }

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
-  namespace: timetrack
+  namespace: worklog
 spec:
   accessModes:
     - ReadWriteOnce
@@ -14,25 +14,25 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgres-config
-  namespace: timetrack
+  namespace: worklog
 data:
-  POSTGRES_DB: timetrack
-  POSTGRES_USER: timetrack
+  POSTGRES_DB: worklog
+  POSTGRES_USER: wl_admin
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: postgres-secret
-  namespace: timetrack
+  namespace: worklog
 type: Opaque
 stringData:
-  POSTGRES_PASSWORD: changeme123
+  POSTGRES_PASSWORD: Kj8mP9qL2nJ5wR7vT3bS6xY1uZ4cD
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
-  namespace: timetrack
+  namespace: worklog
 spec:
   replicas: 1
   selector:
@@ -66,11 +66,12 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: timetrack
+  namespace: worklog
 spec:
   selector:
     app: postgres
   ports:
   - port: 5432
     targetPort: 5432
-  type: ClusterIP
+    nodePort: 30432
+  type: NodePort

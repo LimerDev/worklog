@@ -2,7 +2,7 @@
 .env
 
 # Binaries
-timetrack
+bin/
 *.exe
 *.exe~
 *.dll

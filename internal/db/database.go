@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/LimerDev/worklog/internal/config"
 	"github.com/LimerDev/worklog/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -13,12 +14,28 @@ import (
 
 var DB *gorm.DB
 
-func Connect() error {
-	host := getEnv("DB_HOST", "localhost")
-	port := getEnv("DB_PORT", "5432")
-	user := getEnv("DB_USER", "timetrack")
-	password := getEnv("DB_PASSWORD", "timetrack")
-	dbname := getEnv("DB_NAME", "timetrack")
+func Connect(cfg *config.Config) error {
+	// Use config database settings, with environment variable overrides
+	host := getEnv("DB_HOST", cfg.Database.Host)
+	if host == "" {
+		host = "localhost"
+	}
+	port := getEnv("DB_PORT", cfg.Database.Port)
+	if port == "" {
+		port = "5432"
+	}
+	user := getEnv("DB_USER", cfg.Database.User)
+	if user == "" {
+		user = "worklog"
+	}
+	password := getEnv("DB_PASSWORD", cfg.Database.Password)
+	if password == "" {
+		password = "worklog"
+	}
+	dbname := getEnv("DB_NAME", cfg.Database.Name)
+	if dbname == "" {
+		dbname = "worklog"
+	}
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		host, user, password, dbname, port)

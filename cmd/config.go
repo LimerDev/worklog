@@ -12,6 +12,11 @@ var (
 	configClient     string
 	configProject    string
 	configRate       float64
+	configDBHost     string
+	configDBPort     string
+	configDBUser     string
+	configDBPassword string
+	configDBName     string
 )
 
 var configCmd = &cobra.Command{
@@ -44,6 +49,11 @@ func init() {
 	configSetCmd.Flags().StringVarP(&configClient, "client", "c", "", "Default client name")
 	configSetCmd.Flags().StringVarP(&configProject, "project", "p", "", "Default project name")
 	configSetCmd.Flags().Float64VarP(&configRate, "rate", "r", 0, "Default hourly rate")
+	configSetCmd.Flags().StringVar(&configDBHost, "db-host", "", "Database host")
+	configSetCmd.Flags().StringVar(&configDBPort, "db-port", "", "Database port")
+	configSetCmd.Flags().StringVar(&configDBUser, "db-user", "", "Database user")
+	configSetCmd.Flags().StringVar(&configDBPassword, "db-password", "", "Database password")
+	configSetCmd.Flags().StringVar(&configDBName, "db-name", "", "Database name")
 }
 
 func runConfigShow(cmd *cobra.Command, args []string) error {
@@ -78,12 +88,27 @@ func runConfigShow(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Default Hourly Rate: %.2f kr/h\n", cfg.DefaultRate)
 	}
 
+	fmt.Println("\nDatabase Configuration:")
+	if cfg.Database.Host != "" {
+		fmt.Printf("  Host: %s\n", cfg.Database.Host)
+	}
+	if cfg.Database.Port != "" {
+		fmt.Printf("  Port: %s\n", cfg.Database.Port)
+	}
+	if cfg.Database.User != "" {
+		fmt.Printf("  User: %s\n", cfg.Database.User)
+	}
+	if cfg.Database.Name != "" {
+		fmt.Printf("  Database: %s\n", cfg.Database.Name)
+	}
+
 	return nil
 }
 
 func runConfigSet(cmd *cobra.Command, args []string) error {
-	if configConsultant == "" && configClient == "" && configProject == "" && configRate == 0 {
-		return fmt.Errorf("you must specify at least one value with -n, -c, -p, or -r")
+	if configConsultant == "" && configClient == "" && configProject == "" && configRate == 0 &&
+		configDBHost == "" && configDBPort == "" && configDBUser == "" && configDBPassword == "" && configDBName == "" {
+		return fmt.Errorf("you must specify at least one value")
 	}
 
 	cfg, err := config.Load()
@@ -92,6 +117,23 @@ func runConfigSet(cmd *cobra.Command, args []string) error {
 	}
 
 	cfg.SetDefaults(configConsultant, configClient, configProject, configRate)
+
+	// Set database configuration if provided
+	if configDBHost != "" {
+		cfg.Database.Host = configDBHost
+	}
+	if configDBPort != "" {
+		cfg.Database.Port = configDBPort
+	}
+	if configDBUser != "" {
+		cfg.Database.User = configDBUser
+	}
+	if configDBPassword != "" {
+		cfg.Database.Password = configDBPassword
+	}
+	if configDBName != "" {
+		cfg.Database.Name = configDBName
+	}
 
 	if err := cfg.Save(); err != nil {
 		return err
@@ -102,6 +144,14 @@ func runConfigSet(cmd *cobra.Command, args []string) error {
 	fmt.Printf("  Client: %s\n", cfg.DefaultClient)
 	fmt.Printf("  Project: %s\n", cfg.DefaultProject)
 	fmt.Printf("  Hourly Rate: %.2f kr/h\n", cfg.DefaultRate)
+
+	if cfg.Database.Host != "" || cfg.Database.Port != "" || cfg.Database.User != "" || cfg.Database.Name != "" {
+		fmt.Println("\n  Database:")
+		fmt.Printf("    Host: %s\n", cfg.Database.Host)
+		fmt.Printf("    Port: %s\n", cfg.Database.Port)
+		fmt.Printf("    User: %s\n", cfg.Database.User)
+		fmt.Printf("    Name: %s\n", cfg.Database.Name)
+	}
 
 	return nil
 }

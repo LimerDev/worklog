@@ -3,17 +3,17 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: timetrack-postgres
+    container_name: worklog-postgres
     network_mode: "host"
     environment:
-      POSTGRES_USER: timetrack
-      POSTGRES_PASSWORD: timetrack
-      POSTGRES_DB: timetrack
+      POSTGRES_USER: worklog
+      POSTGRES_PASSWORD: worklog
+      POSTGRES_DB: worklog
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./migrations:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U timetrack"]
+      test: ["CMD-SHELL", "pg_isready -U worklog"]
       interval: 5s
       timeout: 5s
       retries: 5
