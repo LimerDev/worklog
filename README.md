@@ -4,13 +4,13 @@ A simple CLI application for time tracking and consultant billing, written in Go
 
 ## Features
 
-- ✅ Register time entries with hours, description, project, client, and consultant
-- ✅ Flexible filtering and retrieval of time entries by consultant, project, customer, date, or date range
-- ✅ Hourly rates stored per time entry for cost calculation with historical accuracy
-- ✅ Calculate costs based on hourly rates and worked hours
-- ✅ Normalized database structure: Client → Project → Time Entry
-- ✅ PostgreSQL database for storage
-- ✅ Kubernetes deployment support for cluster hosting
+- Register work logs with hours, description, project, client, and consultant
+- Flexible filtering and retrieval of work logs by consultant, project, customer, date, or date range
+- Hourly rates stored per time entry for cost calculation with historical accuracy
+- Calculate costs based on hourly rates and worked hours
+- Normalized database structure: Client → Project → Time Entry
+- PostgreSQL database for storage
+- Kubernetes deployment support for cluster hosting
 
 ## Installation
 
@@ -119,9 +119,9 @@ worklog add -t 8 -d "Development" -p "Project A" -c "Client AB" -n "Alice Johnso
 
 Configuration file location: `~/.worklog/config.json`
 
-### Retrieve and filter time entries
+### Retrieve and filter work logs
 
-Get all time entries:
+Get all work logs:
 ```bash
 worklog get
 ```
@@ -168,7 +168,7 @@ worklog get --today -c "ACME Corp"
 ```
 
 The output shows:
-- Table with all matching time entries (date, consultant, hours, rate, cost, project, customer, description)
+- Table with all matching work logs (date, consultant, hours, rate, cost, project, customer, description)
 - Total hours and costs
 
 ### Using with Kubernetes
@@ -180,7 +180,7 @@ Run commands in the K8s pod:
 kubectl exec -it -n worklog deployment/worklog -- ./worklog add \
   -t 8 -d "Development" -p "Project A" -c "Client AB" -n "Consultant" -r 650
 
-# Retrieve time entries
+# Retrieve work logs
 kubectl exec -it -n worklog deployment/worklog -- ./worklog get -n "Consultant"
 ```
 
@@ -293,7 +293,7 @@ just db-logs     # Show database logs
 # Test commands (automatically use test database)
 just test-add         # Add sample test data
 just test-quick       # Add a quick test entry
-just test-get-all     # Get all time entries
+just test-get-all     # Get all work logs
 just test-full        # Build + add sample data + run all get tests
 ```
 
@@ -330,7 +330,7 @@ just test-full        # Build + add sample data + run all get tests
 
    # Run the application with test database (all test commands use test DB automatically)
    just test-add      # Add sample data
-   just test-get-all  # Get all time entries
+   just test-get-all  # Get all work logs
    just test-full     # Build + add data + run all get tests
 
    # Stop the database
@@ -353,7 +353,7 @@ go test ./...
 just test-full      # Builds, adds sample data, and runs all get tests
 just test-add       # Add more sample data
 just test-quick     # Add a quick single test entry
-just test-get-all   # Get and display all time entries
+just test-get-all   # Get and display all work logs
 ```
 
 ## License

@@ -16,8 +16,8 @@ metadata:
   name: postgres-config
   namespace: worklog
 data:
-  POSTGRES_DB: worklog
-  POSTGRES_USER: wl_admin
+  POSTGRES_DB: replace-me
+  POSTGRES_USER: replace-me
 ---
 apiVersion: v1
 kind: Secret
@@ -26,7 +26,7 @@ metadata:
   namespace: worklog
 type: Opaque
 stringData:
-  POSTGRES_PASSWORD: Kj8mP9qL2nJ5wR7vT3bS6xY1uZ4cD
+  POSTGRES_PASSWORD: replace-me
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -73,5 +73,5 @@ spec:
   ports:
   - port: 5432
     targetPort: 5432
-    nodePort: 30432
+    nodePort: replace-me
   type: NodePort

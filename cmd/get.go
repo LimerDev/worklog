@@ -22,8 +22,8 @@ var (
 
 var getCmd = &cobra.Command{
 	Use:   "get",
-	Short: "Retrieve and filter time entries",
-	Long:  `Retrieve time entries with flexible filtering by consultant, project, customer, or date range.`,
+	Short: "Retrieve and filter work logs",
+	Long:  `Retrieve work logs with flexible filtering by consultant, project, customer, or date range.`,
 	RunE:  runGet,
 }
 
@@ -90,11 +90,11 @@ func runGet(cmd *cobra.Command, args []string) error {
 	repo := database.NewRepository()
 	entries, err := repo.GetTimeEntriesByFilters(getConsultant, getProject, getCustomer, startDate, endDate)
 	if err != nil {
-		return fmt.Errorf("failed to fetch time entries: %w", err)
+		return fmt.Errorf("failed to fetch work logs: %w", err)
 	}
 
 	if len(entries) == 0 {
-		fmt.Println("No time entries found matching the filters.")
+		fmt.Println("No work logs found matching the filters.")
 		return nil
 	}
 
@@ -121,10 +121,10 @@ func displayTimeEntries(entries []models.TimeEntry) {
 	costWidth := len("COST")
 
 	const (
-		maxDateWidth       = 10
-		maxConsultantWidth = 20
-		maxProjectWidth    = 25
-		maxCustomerWidth   = 20
+		maxDateWidth        = 10
+		maxConsultantWidth  = 20
+		maxProjectWidth     = 25
+		maxCustomerWidth    = 20
 		maxDescriptionWidth = 40
 	)
 

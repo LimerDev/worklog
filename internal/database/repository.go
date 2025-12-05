@@ -39,7 +39,7 @@ func (r *Repository) GetAllTimeEntries() ([]models.TimeEntry, error) {
 	return entries, err
 }
 
-// GetTimeEntriesByFilters retrieves time entries with flexible filtering
+// GetTimeEntriesByFilters retrieves work logs with flexible filtering
 func (r *Repository) GetTimeEntriesByFilters(consultantName, projectName, customerName string, startDate, endDate time.Time) ([]models.TimeEntry, error) {
 	var entries []models.TimeEntry
 	query := r.db.Preload("Project.Customer").Preload("Consultant")

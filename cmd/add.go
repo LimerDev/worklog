@@ -22,8 +22,8 @@ var (
 
 var addCmd = &cobra.Command{
 	Use:   "add",
-	Short: "Add a new time entry",
-	Long:  `Register a new time entry with hours, description, project and customer.`,
+	Short: "Add a new work log entry",
+	Long:  `Register a new work log with hours, description, project and customer.`,
 	RunE:  runAdd,
 }
 
@@ -123,14 +123,15 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	}
 
 	if err := repo.CreateTimeEntry(entry); err != nil {
-		return fmt.Errorf("failed to save time entry: %w", err)
+		return fmt.Errorf("failed to save work log: %w", err)
 	}
 
 	cost := hours * hourlyRate
-	fmt.Printf("✓ Time entry saved!\n")
+	fmt.Printf("  Work log saved!\n")
 	fmt.Printf("  Date: %s\n", entryDate.Format("2006-01-02"))
-	fmt.Printf("  Consultant: %s (%.2f kr/h)\n", consultantObj.Name, hourlyRate)
+	fmt.Printf("  Consultant: %s\n", consultantObj.Name)
 	fmt.Printf("  Hours: %.2f\n", hours)
+	fmt.Printf("  Hourly Rate: %.2f\n", hourlyRate)
 	fmt.Printf("  Cost: %.2f kr\n", cost)
 	fmt.Printf("  Project: %s\n", project)
 	fmt.Printf("  Customer: %s\n", client)

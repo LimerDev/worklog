@@ -100,7 +100,7 @@ config-clear: build
 
 # Add sample data for testing
 test-add: build
-    @echo "Adding sample time entries..."
+    @echo "Adding sample work logs..."
     sh -c "{{test_env}} ./bin/worklog add -t 8 -d 'Backend API development' -p 'E-Commerce Platform' -c 'ACME Corp' -n 'Alice Johnson' -r 650"
     sh -c "{{test_env}} ./bin/worklog add -t 6 -d 'Frontend design improvements' -p 'E-Commerce Platform' -c 'ACME Corp' -n 'Bob Smith' -r 600"
     sh -c "{{test_env}} ./bin/worklog add -t 4.5 -d 'Bug fixes and testing' -p 'Mobile App' -c 'TechStart AB' -n 'Alice Johnson' -r 650"
@@ -114,7 +114,7 @@ test-quick: build
 
 # Get all entries
 test-get-all: build
-    @echo "Getting all time entries..."
+    @echo "Getting work logs..."
     sh -c "{{test_env}} ./bin/worklog get"
 
 # Get entries for specific consultant

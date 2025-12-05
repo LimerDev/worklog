@@ -115,7 +115,7 @@ func runConfigSet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println("✓ Configuration saved!")
+	fmt.Println("  Configuration saved!")
 	fmt.Printf("  Consultant: %s\n", cfg.DefaultConsultant)
 	fmt.Printf("  Client: %s\n", cfg.DefaultClient)
 	fmt.Printf("  Project: %s\n", cfg.DefaultProject)
