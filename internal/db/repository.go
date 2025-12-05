@@ -111,11 +111,11 @@ func (r *Repository) CreateConsultant(consultant *models.Consultant) error {
 	return r.db.Create(consultant).Error
 }
 
-func (r *Repository) GetOrCreateConsultant(name string, hourlyRate float64) (*models.Consultant, error) {
+func (r *Repository) GetOrCreateConsultant(name string) (*models.Consultant, error) {
 	var consultant models.Consultant
 	err := r.db.Where("name = ?", name).First(&consultant).Error
 	if err == gorm.ErrRecordNotFound {
-		consultant = models.Consultant{Name: name, HourlyRate: hourlyRate, Active: true}
+		consultant = models.Consultant{Name: name, Active: true}
 		err = r.db.Create(&consultant).Error
 	}
 	return &consultant, err
@@ -131,8 +131,4 @@ func (r *Repository) GetConsultantByID(id uint) (*models.Consultant, error) {
 	var consultant models.Consultant
 	err := r.db.First(&consultant, id).Error
 	return &consultant, err
-}
-
-func (r *Repository) UpdateConsultantRate(id uint, hourlyRate float64) error {
-	return r.db.Model(&models.Consultant{}).Where("id = ?", id).Update("hourly_rate", hourlyRate).Error
 }

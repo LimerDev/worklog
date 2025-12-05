@@ -78,7 +78,7 @@ func runReport(cmd *cobra.Command, args []string) error {
 		projectName := entry.Project.Name
 		customerName := entry.Project.Customer.Name
 		consultantName := entry.Consultant.Name
-		hourlyRate := entry.Consultant.HourlyRate
+		hourlyRate := entry.HourlyRate
 		cost := entry.Hours * hourlyRate
 
 		fmt.Printf("%-12s %-15s %-8.2f %-10.2f %-12.2f %-20s %-20s %s\n",

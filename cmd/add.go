@@ -95,7 +95,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	repo := db.NewRepository()
 
 	// Get or create consultant
-	consultantObj, err := repo.GetOrCreateConsultant(consultant, hourlyRate)
+	consultantObj, err := repo.GetOrCreateConsultant(consultant)
 	if err != nil {
 		return fmt.Errorf("kunde inte hämta/skapa konsult: %w", err)
 	}
@@ -117,6 +117,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		Date:         entryDate,
 		Hours:        hours,
 		Description:  description,
+		HourlyRate:   hourlyRate,
 		ProjectID:    projectObj.ID,
 		ConsultantID: consultantObj.ID,
 	}
@@ -125,10 +126,10 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("kunde inte spara tidsregistrering: %w", err)
 	}
 
-	cost := hours * consultantObj.HourlyRate
+	cost := hours * hourlyRate
 	fmt.Printf("✓ Tidsregistrering sparad!\n")
 	fmt.Printf("  Datum: %s\n", entryDate.Format("2006-01-02"))
-	fmt.Printf("  Konsult: %s (%.2f kr/h)\n", consultantObj.Name, consultantObj.HourlyRate)
+	fmt.Printf("  Konsult: %s (%.2f kr/h)\n", consultantObj.Name, hourlyRate)
 	fmt.Printf("  Timmar: %.2f\n", hours)
 	fmt.Printf("  Kostnad: %.2f kr\n", cost)
 	fmt.Printf("  Projekt: %s\n", project)

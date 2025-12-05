@@ -10,6 +10,7 @@ type TimeEntry struct {
 	Date         time.Time  `gorm:"not null;index"`
 	Hours        float64    `gorm:"not null"`
 	Description  string     `gorm:"type:text;not null"`
+	HourlyRate   float64    `gorm:"type:numeric(10,2);not null"`
 	ProjectID    uint       `gorm:"not null;index"`
 	Project      Project    `gorm:"foreignKey:ProjectID"`
 	ConsultantID uint       `gorm:"not null;index"`
