@@ -57,7 +57,9 @@ docker run \
 3. Apply Kubernetes manifests:
    ```bash
    kubectl apply -f k8s/namespace.yaml
-   kubectl apply -f k8s/postgres.yaml
+   kubectl apply -f k8s/postgres-storage.yaml
+   kubectl apply -f k8s/postgres-config.yaml
+   kubectl apply -f k8s/postgres-deployment.yaml
    kubectl apply -f k8s/worklog.yaml
    ```
 4. Wait for pods to be ready:

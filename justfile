@@ -46,13 +46,17 @@ docker-push: docker-build
 # Deploy to Kubernetes
 k8s-deploy:
     kubectl apply -f k8s/namespace.yaml
-    kubectl apply -f k8s/postgres.yaml
+    kubectl apply -f k8s/postgres-storage.yaml
+    kubectl apply -f k8s/postgres-config.yaml
+    kubectl apply -f k8s/postgres-deployment.yaml
     kubectl apply -f k8s/worklog.yaml
 
 # Remove from Kubernetes
 k8s-delete:
     kubectl delete -f k8s/worklog.yaml
-    kubectl delete -f k8s/postgres.yaml
+    kubectl delete -f k8s/postgres-deployment.yaml
+    kubectl delete -f k8s/postgres-config.yaml
+    kubectl delete -f k8s/postgres-storage.yaml
     kubectl delete -f k8s/namespace.yaml
 
 # Run tests

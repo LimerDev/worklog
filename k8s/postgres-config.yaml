@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: worklog
+data:
+  POSTGRES_DB: replace-me
+  POSTGRES_USER: replace-me
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: worklog
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: replace-me
