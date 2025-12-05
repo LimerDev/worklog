@@ -11,8 +11,8 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "worklog",
-	Short: "Worklog - En enkel tidsrapporteringsapp för konsulttimmar",
-	Long:  `Worklog är ett CLI-verktyg för att registrera och rapportera konsulttimmar.`,
+	Short: "Worklog - A simple time reporting app for consultant hours",
+	Long:  `Worklog is a CLI tool for registering and reporting consultant hours.`,
 }
 
 func Execute() {
@@ -28,7 +28,7 @@ func init() {
 
 func initConfig() {
 	if err := config.Initialize(); err != nil {
-		fmt.Fprintf(os.Stderr, "Kunde inte ladda konfiguration: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to load configuration: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -36,17 +36,17 @@ func initConfig() {
 func initDB() {
 	cfg, err := config.Get()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Kunde inte läsa konfiguration: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to read configuration: %v\n", err)
 		os.Exit(1)
 	}
 
 	if err := db.Connect(cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "Kunde inte ansluta till databasen: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to connect to database: %v\n", err)
 		os.Exit(1)
 	}
 
 	if err := db.AutoMigrate(); err != nil {
-		fmt.Fprintf(os.Stderr, "Kunde inte migrera databasen: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to migrate database: %v\n", err)
 		os.Exit(1)
 	}
 }

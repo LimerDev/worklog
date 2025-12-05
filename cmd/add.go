@@ -22,21 +22,21 @@ var (
 
 var addCmd = &cobra.Command{
 	Use:   "add",
-	Short: "Lägg till en ny tidsregistrering",
-	Long:  `Registrera en ny tidsregistrering med timmar, beskrivning, projekt och kund.`,
+	Short: "Add a new time entry",
+	Long:  `Register a new time entry with hours, description, project and customer.`,
 	RunE:  runAdd,
 }
 
 func init() {
 	rootCmd.AddCommand(addCmd)
 
-	addCmd.Flags().Float64VarP(&hours, "hours", "t", 0, "Antal timmar (obligatorisk)")
-	addCmd.Flags().StringVarP(&description, "description", "d", "", "Beskrivning av arbetet (obligatorisk)")
-	addCmd.Flags().StringVarP(&project, "project", "p", "", "Projektnamn (använder default om inte angiven)")
-	addCmd.Flags().StringVarP(&client, "client", "c", "", "Kundnamn (använder default om inte angiven)")
-	addCmd.Flags().StringVarP(&consultant, "consultant", "n", "", "Konsultnamn (använder default om inte angiven)")
-	addCmd.Flags().Float64VarP(&hourlyRate, "rate", "r", 0, "Timpris (använder default om inte angivet)")
-	addCmd.Flags().StringVarP(&date, "date", "D", "", "Datum (YYYY-MM-DD, standard: idag)")
+	addCmd.Flags().Float64VarP(&hours, "hours", "t", 0, "Number of hours (required)")
+	addCmd.Flags().StringVarP(&description, "description", "d", "", "Description of the work (required)")
+	addCmd.Flags().StringVarP(&project, "project", "p", "", "Project name (uses default if not specified)")
+	addCmd.Flags().StringVarP(&client, "client", "c", "", "Customer name (uses default if not specified)")
+	addCmd.Flags().StringVarP(&consultant, "consultant", "n", "", "Consultant name (uses default if not specified)")
+	addCmd.Flags().Float64VarP(&hourlyRate, "rate", "r", 0, "Hourly rate (uses default if not specified)")
+	addCmd.Flags().StringVarP(&date, "date", "D", "", "Date (YYYY-MM-DD, default: today)")
 
 	addCmd.MarkFlagRequired("hours")
 	addCmd.MarkFlagRequired("description")
@@ -46,7 +46,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	// Get configuration
 	cfg, err := config.Get()
 	if err != nil {
-		return fmt.Errorf("kunde inte läsa konfiguration: %w", err)
+		return fmt.Errorf("failed to read configuration: %w", err)
 	}
 
 	// Use defaults if not provided
@@ -65,16 +65,16 @@ func runAdd(cmd *cobra.Command, args []string) error {
 
 	// Validate required fields
 	if consultant == "" {
-		return fmt.Errorf("konsult krävs (-n KONSULT eller `worklog config set -n KONSULT`)")
+		return fmt.Errorf("consultant required (-n CONSULTANT or `worklog config set -n CONSULTANT`)")
 	}
 	if client == "" {
-		return fmt.Errorf("kund krävs (-c KUND eller `worklog config set -c KUND`)")
+		return fmt.Errorf("customer required (-c CUSTOMER or `worklog config set -c CUSTOMER`)")
 	}
 	if project == "" {
-		return fmt.Errorf("projekt krävs (-p PROJEKT eller `worklog config set -p PROJEKT`)")
+		return fmt.Errorf("project required (-p PROJECT or `worklog config set -p PROJECT`)")
 	}
 	if hourlyRate <= 0 {
-		return fmt.Errorf("timpris krävs (-r TIMPRIS eller `worklog config set -r TIMPRIS`)")
+		return fmt.Errorf("hourly rate required (-r RATE or `worklog config set -r RATE`)")
 	}
 
 	var entryDate time.Time
@@ -84,12 +84,12 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	} else {
 		entryDate, err = time.Parse("2006-01-02", date)
 		if err != nil {
-			return fmt.Errorf("ogiltigt datumformat, använd YYYY-MM-DD: %w", err)
+			return fmt.Errorf("invalid date format, use YYYY-MM-DD: %w", err)
 		}
 	}
 
 	if hours <= 0 {
-		return fmt.Errorf("timmar måste vara större än 0")
+		return fmt.Errorf("hours must be greater than 0")
 	}
 
 	repo := database.NewRepository()
@@ -97,19 +97,19 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	// Get or create consultant
 	consultantObj, err := repo.GetOrCreateConsultant(consultant)
 	if err != nil {
-		return fmt.Errorf("kunde inte hämta/skapa konsult: %w", err)
+		return fmt.Errorf("failed to get/create consultant: %w", err)
 	}
 
 	// Get or create customer
 	customerObj, err := repo.GetOrCreateCustomer(client)
 	if err != nil {
-		return fmt.Errorf("kunde inte hämta/skapa kund: %w", err)
+		return fmt.Errorf("failed to get/create customer: %w", err)
 	}
 
 	// Get or create project for this customer
 	projectObj, err := repo.GetOrCreateProject(project, customerObj.ID)
 	if err != nil {
-		return fmt.Errorf("kunde inte hämta/skapa projekt: %w", err)
+		return fmt.Errorf("failed to get/create project: %w", err)
 	}
 
 	// Create time entry
@@ -123,18 +123,18 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	}
 
 	if err := repo.CreateTimeEntry(entry); err != nil {
-		return fmt.Errorf("kunde inte spara tidsregistrering: %w", err)
+		return fmt.Errorf("failed to save time entry: %w", err)
 	}
 
 	cost := hours * hourlyRate
-	fmt.Printf("✓ Tidsregistrering sparad!\n")
-	fmt.Printf("  Datum: %s\n", entryDate.Format("2006-01-02"))
-	fmt.Printf("  Konsult: %s (%.2f kr/h)\n", consultantObj.Name, hourlyRate)
-	fmt.Printf("  Timmar: %.2f\n", hours)
-	fmt.Printf("  Kostnad: %.2f kr\n", cost)
-	fmt.Printf("  Projekt: %s\n", project)
-	fmt.Printf("  Kund: %s\n", client)
-	fmt.Printf("  Beskrivning: %s\n", description)
+	fmt.Printf("✓ Time entry saved!\n")
+	fmt.Printf("  Date: %s\n", entryDate.Format("2006-01-02"))
+	fmt.Printf("  Consultant: %s (%.2f kr/h)\n", consultantObj.Name, hourlyRate)
+	fmt.Printf("  Hours: %.2f\n", hours)
+	fmt.Printf("  Cost: %.2f kr\n", cost)
+	fmt.Printf("  Project: %s\n", project)
+	fmt.Printf("  Customer: %s\n", client)
+	fmt.Printf("  Description: %s\n", description)
 
 	return nil
 }

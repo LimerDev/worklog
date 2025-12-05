@@ -14,15 +14,15 @@ var (
 
 var reportCmd = &cobra.Command{
 	Use:   "report",
-	Short: "Generera månadsrapport",
-	Long:  `Visa en sammanställning av alla tidsregistreringar för en given månad.`,
+	Short: "Generate monthly report",
+	Long:  `Show a summary of all time entries for a given month.`,
 	RunE:  runReport,
 }
 
 func init() {
 	rootCmd.AddCommand(reportCmd)
 
-	reportCmd.Flags().StringVarP(&reportMonth, "month", "m", "", "Månad (YYYY-MM, standard: aktuell månad)")
+	reportCmd.Flags().StringVarP(&reportMonth, "month", "m", "", "Month (YYYY-MM, default: current month)")
 }
 
 func runReport(cmd *cobra.Command, args []string) error {
@@ -36,7 +36,7 @@ func runReport(cmd *cobra.Command, args []string) error {
 	} else {
 		parsedDate, err := time.Parse("2006-01", reportMonth)
 		if err != nil {
-			return fmt.Errorf("ogiltigt månadsformat, använd YYYY-MM: %w", err)
+			return fmt.Errorf("invalid month format, use YYYY-MM: %w", err)
 		}
 		year = parsedDate.Year()
 		month = parsedDate.Month()
@@ -45,16 +45,16 @@ func runReport(cmd *cobra.Command, args []string) error {
 	repo := database.NewRepository()
 	entries, err := repo.GetTimeEntriesByMonth(year, month)
 	if err != nil {
-		return fmt.Errorf("kunde inte hämta tidsregistreringar: %w", err)
+		return fmt.Errorf("failed to fetch time entries: %w", err)
 	}
 
 	if len(entries) == 0 {
-		fmt.Printf("Inga tidsregistreringar hittades för %s %d\n", month, year)
+		fmt.Printf("No time entries found for %s %d\n", month, year)
 		return nil
 	}
 
 	fmt.Printf("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-	fmt.Printf("  TIDSRAPPORT - %s %d\n", month, year)
+	fmt.Printf("  TIME REPORT - %s %d\n", month, year)
 	fmt.Printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n")
 
 	type consultantCost struct {
@@ -71,8 +71,8 @@ func runReport(cmd *cobra.Command, args []string) error {
 	var totalHours float64
 	var totalCost float64
 
-	fmt.Printf("%-12s %-15s %-8s %-10s %-12s %-20s %-20s %s\n", "Datum", "Konsult", "Timmar", "Timpris", "Kostnad", "Projekt", "Kund", "Beskrivning")
-	fmt.Printf("%-12s %-15s %-8s %-10s %-12s %-20s %-20s %s\n", "─────────", "───────────────", "──────", "────────", "──────────", "────────────────", "────────────────", "────────────")
+	fmt.Printf("%-12s %-15s %-8s %-10s %-12s %-20s %-20s %s\n", "Date", "Consultant", "Hours", "Rate", "Cost", "Project", "Customer", "Description")
+	fmt.Printf("%-12s %-15s %-8s %-10s %-12s %-20s %-20s %s\n", "────────", "─────────────", "─────", "────", "────", "───────", "────────", "───────────")
 
 	for _, entry := range entries {
 		projectName := entry.Project.Name
@@ -108,25 +108,25 @@ func runReport(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-	fmt.Printf("  SAMMANFATTNING\n")
+	fmt.Printf("  SUMMARY\n")
 	fmt.Printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n")
 
-	fmt.Printf("Totalt antal timmar: %.2f\n", totalHours)
-	fmt.Printf("Total kostnad: %.2f kr\n\n", totalCost)
+	fmt.Printf("Total hours: %.2f\n", totalHours)
+	fmt.Printf("Total cost: %.2f kr\n\n", totalCost)
 
-	fmt.Printf("Per konsult:\n")
+	fmt.Printf("Per consultant:\n")
 	for consultant, stats := range consultantStats {
-		fmt.Printf("  %-30s %.2f timmar | %.2f kr\n", consultant, stats.hours, stats.cost)
+		fmt.Printf("  %-30s %.2f hours | %.2f kr\n", consultant, stats.hours, stats.cost)
 	}
 
-	fmt.Printf("\nPer projekt:\n")
+	fmt.Printf("\nPer project:\n")
 	for project, hours := range projectHours {
-		fmt.Printf("  %-30s %.2f timmar | %.2f kr\n", project, hours, projectCost[project])
+		fmt.Printf("  %-30s %.2f hours | %.2f kr\n", project, hours, projectCost[project])
 	}
 
-	fmt.Printf("\nPer kund:\n")
+	fmt.Printf("\nPer customer:\n")
 	for client, hours := range clientHours {
-		fmt.Printf("  %-30s %.2f timmar | %.2f kr\n", client, hours, clientCost[client])
+		fmt.Printf("  %-30s %.2f hours | %.2f kr\n", client, hours, clientCost[client])
 	}
 
 	fmt.Printf("\n")
