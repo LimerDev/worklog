@@ -112,11 +112,6 @@ test-add: build
 test-quick: build
     sh -c "{{test_env}} ./bin/worklog add -t 3 -d 'Quick task'"
 
-# Generate monthly report
-test-report: build
-    @echo "Generating monthly report..."
-    sh -c "{{test_env}} ./bin/worklog report"
-
 # Get all entries
 test-get-all: build
     @echo "Getting all time entries..."
@@ -152,8 +147,8 @@ test-get-today-consultant: build
     @echo "Getting today's entries for Alice Johnson..."
     sh -c "{{test_env}} ./bin/worklog get --today -n 'Alice Johnson'"
 
-# Run full test: build, add sample data, generate reports and test get commands
-test-full: build test-add test-report test-get-all test-get-consultant test-get-customer test-get-date test-get-combined test-get-today test-get-today-consultant
+# Run full test: build, add sample data and test get commands
+test-full: build test-add test-get-all test-get-consultant test-get-customer test-get-date test-get-combined test-get-today test-get-today-consultant
 
 # Show all available commands
 list:
