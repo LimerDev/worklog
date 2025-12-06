@@ -6,6 +6,7 @@ A simple CLI application for time tracking and consultant billing, written in Go
 
 - Register work logs with hours, description, project, client, and consultant
 - Flexible filtering and retrieval of work logs by consultant, project, customer, date, or date range
+- Export work logs to CSV format with customizable filters
 - Hourly rates stored per time entry for cost calculation with historical accuracy
 - Calculate costs based on hourly rates and worked hours
 - Normalized database structure: Client → Project → Time Entry
@@ -173,6 +174,31 @@ The output shows:
 - Table with all matching work logs (date, consultant, hours, rate, cost, project, customer, description)
 - Total hours and costs
 
+### Export work logs to CSV
+
+Export all entries:
+```bash
+worklog export -o report.csv
+```
+
+Export to stdout:
+```bash
+worklog export | head -20
+```
+
+Export with filters (same as get command):
+```bash
+worklog export -n "Alice Johnson" -o alice_report.csv
+worklog export -m 2025-11 -o november_report.csv
+worklog export --from 2025-11-01 --to 2025-11-30 -o period_report.csv
+worklog export -c "ACME Corp" -o acme_report.csv
+```
+
+The CSV file includes:
+- Headers: DATE, CONSULTANT, PROJECT, CUSTOMER, DESCRIPTION, HOURS, RATE, COST
+- All matching work log entries
+- Total row with summed hours and costs
+
 ### Using with Kubernetes
 
 Run commands in the K8s pod:
@@ -293,10 +319,12 @@ just db-reset    # Reset database (delete all data)
 just db-logs     # Show database logs
 
 # Test commands (automatically use test database)
-just test-add         # Add sample test data
-just test-quick       # Add a quick test entry
-just test-get-all     # Get all work logs
-just test-full        # Build + add sample data + run all get tests
+just test-add              # Add sample test data
+just test-quick            # Add a quick test entry
+just test-get-all          # Get all work logs
+just test-export-all       # Export all entries to CSV
+just test-export-consultant # Export entries for Alice Johnson to CSV
+just test-full             # Build + add sample data + run all get tests
 ```
 
 ## Development
@@ -352,10 +380,12 @@ just build
 go test ./...
 
 # Test with sample data (uses test database configuration)
-just test-full      # Builds, adds sample data, and runs all get tests
-just test-add       # Add more sample data
-just test-quick     # Add a quick single test entry
-just test-get-all   # Get and display all work logs
+just test-full              # Builds, adds sample data, and runs all get tests
+just test-add               # Add more sample data
+just test-quick             # Add a quick single test entry
+just test-get-all           # Get and display all work logs
+just test-export-all        # Export all work logs to CSV
+just test-export-consultant # Export work logs for specific consultant to CSV
 ```
 
 ## License

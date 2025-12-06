@@ -1,0 +1,15 @@
+DATE,CONSULTANT,PROJECT,CUSTOMER,DESCRIPTION,HOURS,RATE,COST
+2025-12-01,Niklas Palmgren,Frikoppla,HSB,Iteration planning,2.00,1093.00,2186.00
+2025-12-01,Niklas Palmgren,Frikoppla,HSB,Felhantering nytt medlemsflöde,4.00,1093.00,4372.00
+2025-12-01,Niklas Palmgren,Frikoppla,HSB,Daily,0.50,1093.00,546.50
+2025-12-01,Niklas Palmgren,Frikoppla,HSB,Iteration review,0.50,1093.00,546.50
+2025-12-01,Niklas Palmgren,Frikoppla,HSB,Retrospective,1.50,1093.00,1639.50
+2025-12-02,Niklas Palmgren,Frikoppla,HSB,Resa utanför normal arbetsrid,1.50,546.50,819.75
+2025-12-02,Niklas Palmgren,Frikoppla,HSB,Hackaton dag 1,5.50,1093.00,6011.50
+2025-12-02,Niklas Palmgren,Frikoppla,HSB,Resa till hackaton under normal arbetstid,2.50,1093.00,2732.50
+2025-12-03,Niklas Palmgren,Frikoppla,HSB,Resa från hackaton utanför normal arbetstid,3.00,546.50,1639.50
+2025-12-03,Niklas Palmgren,Frikoppla,HSB,Hackaton dag 2,5.00,1093.00,5465.00
+2025-12-03,Niklas Palmgren,Frikoppla,HSB,Resa från hackaton under normal arbetstid,1.00,1093.00,1093.00
+2025-12-04,Niklas Palmgren,Frikoppla,HSB,Demo av konfiguration och uppsättning av Curity i det nya klustret samt planering av vägen framåt i QA-miljön,2.00,1093.00,2186.00
+2025-12-04,Niklas Palmgren,Frikoppla,HSB,Felhantering nya medlemsflödet. Adress uteblir vid synk till PM.,5.00,1093.00,5465.00
+,,,,TOTAL,34.00,,34702.75

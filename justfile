@@ -151,6 +151,18 @@ test-get-today-consultant: build
     @echo "Getting today's entries for Alice Johnson..."
     sh -c "{{test_env}} ./bin/worklog get --today -n 'Alice Johnson'"
 
+# Export all entries to CSV
+test-export-all: build
+    @echo "Exporting all work logs to CSV..."
+    sh -c "{{test_env}} ./bin/worklog export -o /tmp/worklog_all.csv"
+    @echo "✓ Exported to /tmp/worklog_all.csv"
+
+# Export entries for specific consultant to CSV
+test-export-consultant: build
+    @echo "Exporting entries for Alice Johnson to CSV..."
+    sh -c "{{test_env}} ./bin/worklog export -n 'Alice Johnson' -o /tmp/worklog_alice.csv"
+    @echo "✓ Exported to /tmp/worklog_alice.csv"
+
 # Run full test: build, add sample data and test get commands
 test-full: build test-add test-get-all test-get-consultant test-get-customer test-get-date test-get-combined test-get-today test-get-today-consultant
 
