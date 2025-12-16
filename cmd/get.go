@@ -18,6 +18,8 @@ var (
 	getToDate     string
 	getDate       string
 	getToday      bool
+	getWeek       int
+	getYear       int
 )
 
 var getCmd = &cobra.Command{
@@ -38,6 +40,8 @@ func init() {
 	getCmd.Flags().StringVar(&getToDate, "to", "", "Filter to date (YYYY-MM-DD)")
 	getCmd.Flags().StringVarP(&getDate, "date", "D", "", "Filter by specific date (YYYY-MM-DD)")
 	getCmd.Flags().BoolVar(&getToday, "today", false, "Filter by today's date")
+	getCmd.Flags().IntVarP(&getWeek, "week", "w", 0, "Filter by week number (1-53)")
+	getCmd.Flags().IntVarP(&getYear, "year", "y", 0, "Year for week filter (defaults to current year)")
 }
 
 func runGet(cmd *cobra.Command, args []string) error {
@@ -52,8 +56,33 @@ func runGet(cmd *cobra.Command, args []string) error {
 	// Parse date filters
 	var startDate, endDate time.Time
 
-	// Handle specific date
-	if getDate != "" {
+	// Handle week filter
+	if getWeek > 0 {
+		if getWeek < 1 || getWeek > 53 {
+			return fmt.Errorf("week number must be between 1 and 53")
+		}
+
+		year := getYear
+		if year == 0 {
+			year = time.Now().Year()
+		}
+
+		// Find the first day of the week
+		// Start from January 1st of the year and find the first Monday
+		jan1 := time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC)
+
+		// Calculate the Monday of week 1 (ISO 8601: week 1 is the first week with Thursday)
+		// Find the first Thursday
+		daysUntilThursday := (11 - int(jan1.Weekday())) % 7
+		firstThursday := jan1.AddDate(0, 0, daysUntilThursday)
+
+		// The Monday of week 1 is 3 days before the first Thursday
+		firstMonday := firstThursday.AddDate(0, 0, -3)
+
+		// Calculate the start date of the requested week
+		startDate = firstMonday.AddDate(0, 0, 7*(getWeek-1))
+		endDate = startDate.AddDate(0, 0, 7)
+	} else if getDate != "" {
 		parsedDate, err := time.Parse("2006-01-02", getDate)
 		if err != nil {
 			return fmt.Errorf("invalid date format for --date, use YYYY-MM-DD: %w", err)
