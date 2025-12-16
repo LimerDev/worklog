@@ -80,12 +80,14 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	var entryDate time.Time
 
 	if date == "" {
-		entryDate = time.Now()
+		now := time.Now()
+		entryDate = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	} else {
-		entryDate, err = time.Parse("2006-01-02", date)
+		parsedDate, err := time.Parse("2006-01-02", date)
 		if err != nil {
 			return fmt.Errorf("invalid date format, use YYYY-MM-DD: %w", err)
 		}
+		entryDate = time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, time.UTC)
 	}
 
 	if hours <= 0 {
@@ -112,25 +114,42 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get/create project: %w", err)
 	}
 
-	// Create time entry
-	entry := &models.TimeEntry{
-		Date:         entryDate,
-		Hours:        hours,
-		Description:  description,
-		HourlyRate:   hourlyRate,
-		ProjectID:    projectObj.ID,
-		ConsultantID: consultantObj.ID,
+	// Check if there's an existing entry that matches all fields except hours
+	existingEntry, err := repo.FindMatchingTimeEntry(entryDate, consultantObj.ID, projectObj.ID, description, hourlyRate)
+	if err != nil {
+		return fmt.Errorf("failed to check for existing entry: %w", err)
 	}
 
-	if err := repo.CreateTimeEntry(entry); err != nil {
-		return fmt.Errorf("failed to save work log: %w", err)
+	var totalHours float64
+	if existingEntry != nil {
+		// Entry exists, update it by adding the hours
+		if err := repo.UpdateTimeEntryHours(existingEntry.ID, hours); err != nil {
+			return fmt.Errorf("failed to update work log: %w", err)
+		}
+		totalHours = existingEntry.Hours + hours
+		fmt.Printf("  Work log updated (merged with existing entry)!\n")
+	} else {
+		// No matching entry, create a new one
+		entry := &models.TimeEntry{
+			Date:         entryDate,
+			Hours:        hours,
+			Description:  description,
+			HourlyRate:   hourlyRate,
+			ProjectID:    projectObj.ID,
+			ConsultantID: consultantObj.ID,
+		}
+
+		if err := repo.CreateTimeEntry(entry); err != nil {
+			return fmt.Errorf("failed to save work log: %w", err)
+		}
+		totalHours = hours
+		fmt.Printf("  Work log saved!\n")
 	}
 
-	cost := hours * hourlyRate
-	fmt.Printf("  Work log saved!\n")
+	cost := totalHours * hourlyRate
 	fmt.Printf("  Date: %s\n", entryDate.Format("2006-01-02"))
 	fmt.Printf("  Consultant: %s\n", consultantObj.Name)
-	fmt.Printf("  Hours: %.2f\n", hours)
+	fmt.Printf("  Hours: %.2f\n", totalHours)
 	fmt.Printf("  Hourly Rate: %.2f\n", hourlyRate)
 	fmt.Printf("  Cost: %.2f kr\n", cost)
 	fmt.Printf("  Project: %s\n", project)

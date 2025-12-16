@@ -19,6 +19,28 @@ func (r *Repository) CreateTimeEntry(entry *models.TimeEntry) error {
 	return r.db.Create(entry).Error
 }
 
+// FindMatchingTimeEntry finds an existing time entry that matches all fields except Hours
+func (r *Repository) FindMatchingTimeEntry(date time.Time, consultantID uint, projectID uint, description string, hourlyRate float64) (*models.TimeEntry, error) {
+	var entry models.TimeEntry
+	// Normalize date to just the date part (ignore time)
+	dateOnly := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
+
+	err := r.db.Where("date = ? AND consultant_id = ? AND project_id = ? AND description = ? AND hourly_rate = ?",
+		dateOnly, consultantID, projectID, description, hourlyRate).
+		First(&entry).Error
+
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return &entry, err
+}
+
+// UpdateTimeEntryHours adds hours to an existing time entry
+func (r *Repository) UpdateTimeEntryHours(id uint, additionalHours float64) error {
+	return r.db.Model(&models.TimeEntry{}).Where("id = ?", id).
+		UpdateColumn("hours", gorm.Expr("hours + ?", additionalHours)).Error
+}
+
 func (r *Repository) GetTimeEntriesByMonth(year int, month time.Month) ([]models.TimeEntry, error) {
 	var entries []models.TimeEntry
 
