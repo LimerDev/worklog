@@ -13,7 +13,7 @@ var (
 	getConsultant string
 	getProject    string
 	getCustomer   string
-	getMonth      string
+	getMonth      int
 	getFromDate   string
 	getToDate     string
 	getDate       string
@@ -35,13 +35,13 @@ func init() {
 	getCmd.Flags().StringVarP(&getConsultant, "consultant", "n", "", "Filter by consultant name")
 	getCmd.Flags().StringVarP(&getProject, "project", "p", "", "Filter by project name")
 	getCmd.Flags().StringVarP(&getCustomer, "customer", "c", "", "Filter by customer name")
-	getCmd.Flags().StringVarP(&getMonth, "month", "m", "", "Filter by month (YYYY-MM)")
+	getCmd.Flags().IntVarP(&getMonth, "month", "m", 0, "Filter by month (1-12)")
 	getCmd.Flags().StringVar(&getFromDate, "from", "", "Filter from date (YYYY-MM-DD)")
 	getCmd.Flags().StringVar(&getToDate, "to", "", "Filter to date (YYYY-MM-DD)")
 	getCmd.Flags().StringVarP(&getDate, "date", "D", "", "Filter by specific date (YYYY-MM-DD)")
 	getCmd.Flags().BoolVar(&getToday, "today", false, "Filter by today's date")
 	getCmd.Flags().IntVarP(&getWeek, "week", "w", 0, "Filter by week number (1-53)")
-	getCmd.Flags().IntVarP(&getYear, "year", "y", 0, "Year for week filter (defaults to current year)")
+	getCmd.Flags().IntVarP(&getYear, "year", "y", 0, "Year for month/week filter (defaults to current year)")
 }
 
 func runGet(cmd *cobra.Command, args []string) error {
@@ -89,14 +89,19 @@ func runGet(cmd *cobra.Command, args []string) error {
 		}
 		startDate = parsedDate
 		endDate = parsedDate.AddDate(0, 0, 1)
-	} else if getMonth != "" {
+	} else if getMonth > 0 {
 		// Handle month filter
-		parsedDate, err := time.Parse("2006-01", getMonth)
-		if err != nil {
-			return fmt.Errorf("invalid month format for --month, use YYYY-MM: %w", err)
+		if getMonth < 1 || getMonth > 12 {
+			return fmt.Errorf("month number must be between 1 and 12")
 		}
-		startDate = parsedDate
-		endDate = parsedDate.AddDate(0, 1, 0)
+
+		year := getYear
+		if year == 0 {
+			year = time.Now().Year()
+		}
+
+		startDate = time.Date(year, time.Month(getMonth), 1, 0, 0, 0, 0, time.UTC)
+		endDate = startDate.AddDate(0, 1, 0)
 	} else {
 		// Handle from/to date range
 		if getFromDate != "" {
