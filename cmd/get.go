@@ -25,7 +25,9 @@ var (
 var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Retrieve and filter work logs",
-	Long:  `Retrieve work logs with flexible filtering by consultant, project, customer, or date range.`,
+	Long:  `Retrieve work logs with flexible filtering by consultant, project, customer, or date range.
+
+Default behavior (no filters): Shows entries for current month and year.`,
 	RunE:  runGet,
 }
 
@@ -41,13 +43,10 @@ func init() {
 	getCmd.Flags().StringVarP(&getDate, "date", "D", "", "Filter by specific date (YYYY-MM-DD)")
 	getCmd.Flags().BoolVar(&getToday, "today", false, "Filter by today's date")
 	getCmd.Flags().IntVarP(&getWeek, "week", "w", 0, "Filter by week number (1-53)")
-	getCmd.Flags().IntVarP(&getYear, "year", "y", 0, "Year for month/week filter (defaults to current year)")
+	getCmd.Flags().IntVarP(&getYear, "year", "y", 0, "Filter by year (alone shows full year, or combined with month/week)")
 }
 
 func runGet(cmd *cobra.Command, args []string) error {
-	// Note: We don't use defaults automatically for get command
-	// User must explicitly specify filters they want
-
 	// Handle --today flag
 	if getToday {
 		getDate = time.Now().Format("2006-01-02")
@@ -102,6 +101,10 @@ func runGet(cmd *cobra.Command, args []string) error {
 
 		startDate = time.Date(year, time.Month(getMonth), 1, 0, 0, 0, 0, time.UTC)
 		endDate = startDate.AddDate(0, 1, 0)
+	} else if getYear > 0 {
+		// Handle year filter (when specified without month/week)
+		startDate = time.Date(getYear, time.January, 1, 0, 0, 0, 0, time.UTC)
+		endDate = startDate.AddDate(1, 0, 0) // Next year
 	} else {
 		// Handle from/to date range
 		if getFromDate != "" {
@@ -117,6 +120,13 @@ func runGet(cmd *cobra.Command, args []string) error {
 				return fmt.Errorf("invalid date format for --to, use YYYY-MM-DD: %w", err)
 			}
 			endDate = parsedDate.AddDate(0, 0, 1) // Include the entire day
+		}
+
+		// If no date filters specified at all, default to current year and month
+		if startDate.IsZero() && endDate.IsZero() {
+			now := time.Now()
+			startDate = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+			endDate = startDate.AddDate(0, 1, 0)
 		}
 	}
 
