@@ -40,9 +40,9 @@ jobs:
       - name: Create database backup
         id: backup
         env:
-          BACKUP_TIMESTAMP: ${{ github.run_id }}-$(date +%Y%m%d-%H%M%S)
           POSTGRES_PASSWORD: ${{ secrets.WORKLOG_POSTGRES_PASSWORD }}
         run: |
+          BACKUP_TIMESTAMP="${{ github.run_id }}-$(date +%Y%m%d-%H%M%S)"
           echo "Creating backup with timestamp: ${BACKUP_TIMESTAMP}"
 
           # Create backup directory
