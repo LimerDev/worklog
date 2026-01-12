@@ -71,10 +71,10 @@ jobs:
           S3_BUCKET: ${{ secrets.WORKLOG_BACKUP_S3_BUCKET }}
           BACKUP_FILE: ${{ steps.backup.outputs.backup_file }}
         run: |
-          echo "Uploading ${BACKUP_FILE} to s3://${S3_BUCKET}/worklog/"
+          echo "Uploading ${BACKUP_FILE} to s3://${S3_BUCKET}/"
 
           # Upload to S3 with metadata
-          aws s3 cp "backups/${BACKUP_FILE}" "s3://${S3_BUCKET}/worklog/${BACKUP_FILE}" \
+          aws s3 cp "backups/${BACKUP_FILE}" "s3://${S3_BUCKET}/${BACKUP_FILE}" \
             --metadata "github-run-id=${{ github.run_id }},backup-date=$(date -u +%Y-%m-%d),database=worklog" \
             --storage-class STANDARD_IA
 
@@ -88,9 +88,9 @@ jobs:
           echo "Verifying backup in S3..."
 
           # Check if file exists in S3
-          if aws s3 ls "s3://${S3_BUCKET}/worklog/${BACKUP_FILE}" > /dev/null 2>&1; then
+          if aws s3 ls "s3://${S3_BUCKET}/${BACKUP_FILE}" > /dev/null 2>&1; then
             echo "Backup verified in S3"
-            aws s3 ls "s3://${S3_BUCKET}/worklog/${BACKUP_FILE}" --human-readable
+            aws s3 ls "s3://${S3_BUCKET}/${BACKUP_FILE}" --human-readable
           else
             echo "Error: Backup not found in S3"
             exit 1
@@ -112,7 +112,7 @@ jobs:
           echo "- Timestamp: $(date -u +%Y-%m-%d\ %H:%M:%S\ UTC)" >> $GITHUB_STEP_SUMMARY
           echo "- File: ${{ steps.backup.outputs.backup_file }}" >> $GITHUB_STEP_SUMMARY
           echo "- Size: ${{ steps.backup.outputs.backup_size }}" >> $GITHUB_STEP_SUMMARY
-          echo "- S3 Bucket: s3://${{ secrets.WORKLOG_BACKUP_S3_BUCKET }}/worklog/" >> $GITHUB_STEP_SUMMARY
+          echo "- S3 Bucket: s3://${{ secrets.WORKLOG_BACKUP_S3_BUCKET }}/" >> $GITHUB_STEP_SUMMARY
           echo "- Retention: 90 days" >> $GITHUB_STEP_SUMMARY
 
       - name: Notify on failure

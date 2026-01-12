@@ -25,9 +25,6 @@ cat > lifecycle-policy.json << 'EOF'
     {
       "Id": "DeleteOldBackups",
       "Status": "Enabled",
-      "Filter": {
-        "Prefix": "worklog/"
-      },
       "Expiration": {
         "Days": 90
       }
@@ -37,7 +34,7 @@ cat > lifecycle-policy.json << 'EOF'
 EOF
 
 aws s3api put-bucket-lifecycle-configuration \
-  --bucket your-backup-bucket-name \
+  --bucket worklog-backups \
   --lifecycle-configuration file://lifecycle-policy.json
 ```
 
@@ -88,7 +85,7 @@ Add the following secrets to your GitHub repository (Settings > Secrets and vari
 - `AWS_ACCESS_KEY_ID` - IAM user access key ID
 - `AWS_SECRET_ACCESS_KEY` - IAM user secret access key
 - `AWS_REGION` - AWS region (e.g., `eu-north-1`, `us-east-1`)
-- `WORKLOG_BACKUP_S3_BUCKET` - S3 bucket name (e.g., `your-backup-bucket-name`)
+- `WORKLOG_BACKUP_S3_BUCKET` - S3 bucket name (e.g., `worklog-backups`)
 
 Note: The workflow uses the existing `WORKLOG_POSTGRES_PASSWORD` secret for database access.
 
@@ -126,13 +123,13 @@ Backups are automatically deleted after 90 days via S3 lifecycle policy.
 ### List Available Backups
 
 ```bash
-aws s3 ls s3://your-backup-bucket-name/worklog/ --human-readable
+aws s3 ls s3://worklog-backups/ --human-readable
 ```
 
 ### Download a Backup
 
 ```bash
-aws s3 cp s3://your-backup-bucket-name/worklog/worklog-backup-123456789-20260112-020000.dump ./backup.dump
+aws s3 cp s3://worklog-backups/worklog-backup-123456789-20260112-020000.dump ./backup.dump
 ```
 
 ## Restore Procedure
@@ -141,7 +138,7 @@ aws s3 cp s3://your-backup-bucket-name/worklog/worklog-backup-123456789-20260112
 
 ```bash
 # Download the backup
-aws s3 cp s3://your-backup-bucket-name/worklog/worklog-backup-123456789-20260112-020000.dump ./backup.dump
+aws s3 cp s3://worklog-backups/worklog-backup-123456789-20260112-020000.dump ./backup.dump
 
 # Get database password
 POSTGRES_PASSWORD=$(kubectl get secret postgres-secret -n worklog -o jsonpath='{.data.POSTGRES_PASSWORD}' | base64 -d)
@@ -163,7 +160,7 @@ rm ./backup.dump
 
 ```bash
 # Download the backup
-aws s3 cp s3://your-backup-bucket-name/worklog/worklog-backup-123456789-20260112-020000.dump ./backup.dump
+aws s3 cp s3://worklog-backups/worklog-backup-123456789-20260112-020000.dump ./backup.dump
 
 # Restore to local database (WARNING: This will overwrite existing data!)
 PGPASSWORD=yourpassword pg_restore -h localhost -U worklog -d worklog --clean --if-exists ./backup.dump
@@ -190,12 +187,12 @@ rm ./backup.dump
 
 ```bash
 # List recent backups
-aws s3 ls s3://your-backup-bucket-name/worklog/ --human-readable --recursive
+aws s3 ls s3://worklog-backups/ --human-readable --recursive
 
 # Get backup metadata
 aws s3api head-object \
-  --bucket your-backup-bucket-name \
-  --key worklog/worklog-backup-123456789-20260112-020000.dump
+  --bucket worklog-backups \
+  --key worklog-backup-123456789-20260112-020000.dump
 ```
 
 ## Troubleshooting
