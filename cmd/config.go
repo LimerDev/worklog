@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/LimerDev/worklog/internal/config"
+	"github.com/LimerDev/worklog/internal/i18n"
 	"github.com/spf13/cobra"
 )
 
@@ -12,6 +13,7 @@ var (
 	configClient     string
 	configProject    string
 	configRate       float64
+	configLanguage   string
 	configDBHost     string
 	configDBPort     string
 	configDBUser     string
@@ -21,22 +23,22 @@ var (
 
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "Manage default values for consultant, client, and project",
-	Long:  "Set or view default values to speed up time entry registration",
+	Short: "",
+	Long:  "",
 	RunE:  runConfigShow,
 }
 
 var configSetCmd = &cobra.Command{
 	Use:   "set",
-	Short: "Set default values",
-	Long:  "Set default consultant, client, project, and/or hourly rate",
+	Short: "",
+	Long:  "",
 	RunE:  runConfigSet,
 }
 
 var configClearCmd = &cobra.Command{
 	Use:   "clear",
-	Short: "Clear all default values",
-	Long:  "Remove all saved default values",
+	Short: "",
+	Long:  "",
 	RunE:  runConfigClear,
 }
 
@@ -45,68 +47,94 @@ func init() {
 	configCmd.AddCommand(configSetCmd)
 	configCmd.AddCommand(configClearCmd)
 
-	configSetCmd.Flags().StringVarP(&configConsultant, "consultant", "n", "", "Default consultant name")
-	configSetCmd.Flags().StringVarP(&configClient, "client", "c", "", "Default client name")
-	configSetCmd.Flags().StringVarP(&configProject, "project", "p", "", "Default project name")
-	configSetCmd.Flags().Float64VarP(&configRate, "rate", "r", 0, "Default hourly rate")
-	configSetCmd.Flags().StringVar(&configDBHost, "db-host", "", "Database host")
-	configSetCmd.Flags().StringVar(&configDBPort, "db-port", "", "Database port")
-	configSetCmd.Flags().StringVar(&configDBUser, "db-user", "", "Database user")
-	configSetCmd.Flags().StringVar(&configDBPassword, "db-password", "", "Database password")
-	configSetCmd.Flags().StringVar(&configDBName, "db-name", "", "Database name")
+	configSetCmd.Flags().StringVarP(&configConsultant, "consultant", "n", "", "")
+	configSetCmd.Flags().StringVarP(&configClient, "client", "c", "", "")
+	configSetCmd.Flags().StringVarP(&configProject, "project", "p", "", "")
+	configSetCmd.Flags().Float64VarP(&configRate, "rate", "r", 0, "")
+	configSetCmd.Flags().StringVarP(&configLanguage, "language", "l", "", "")
+	configSetCmd.Flags().StringVar(&configDBHost, "db-host", "", "")
+	configSetCmd.Flags().StringVar(&configDBPort, "db-port", "", "")
+	configSetCmd.Flags().StringVar(&configDBUser, "db-user", "", "")
+	configSetCmd.Flags().StringVar(&configDBPassword, "db-password", "", "")
+	configSetCmd.Flags().StringVar(&configDBName, "db-name", "", "")
+}
+
+func localizeConfigCommand() {
+	configCmd.Short = i18n.T(i18n.KeyConfigShort)
+	configCmd.Long = i18n.T(i18n.KeyConfigLong)
+
+	configSetCmd.Short = i18n.T(i18n.KeyConfigSetShort)
+	configSetCmd.Long = i18n.T(i18n.KeyConfigSetLong)
+
+	configClearCmd.Short = i18n.T(i18n.KeyConfigClearShort)
+	configClearCmd.Long = i18n.T(i18n.KeyConfigClearLong)
+
+	configSetCmd.Flags().Lookup("consultant").Usage = i18n.T(i18n.KeyConfigFlagConsultant)
+	configSetCmd.Flags().Lookup("client").Usage = i18n.T(i18n.KeyConfigFlagClient)
+	configSetCmd.Flags().Lookup("project").Usage = i18n.T(i18n.KeyConfigFlagProject)
+	configSetCmd.Flags().Lookup("rate").Usage = i18n.T(i18n.KeyConfigFlagRate)
+	configSetCmd.Flags().Lookup("language").Usage = i18n.T(i18n.KeyConfigFlagLanguage)
+	configSetCmd.Flags().Lookup("db-host").Usage = i18n.T(i18n.KeyConfigFlagDatabaseHost)
+	configSetCmd.Flags().Lookup("db-port").Usage = i18n.T(i18n.KeyConfigFlagDatabasePort)
+	configSetCmd.Flags().Lookup("db-user").Usage = i18n.T(i18n.KeyConfigFlagDatabaseUser)
+	configSetCmd.Flags().Lookup("db-password").Usage = i18n.T(i18n.KeyConfigFlagDatabasePass)
+	configSetCmd.Flags().Lookup("db-name").Usage = i18n.T(i18n.KeyConfigFlagDatabaseName)
 }
 
 func runConfigShow(cmd *cobra.Command, args []string) error {
 	cfg, err := config.Get()
 	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
+		return fmt.Errorf("%s: %w", i18n.T(i18n.KeyErrLoadConfig), err)
 	}
 
-	fmt.Printf("Configuration:\n\n")
+	fmt.Print(i18n.T(i18n.KeyConfigTitle))
 
 	if cfg.DefaultConsultant == "" && cfg.DefaultClient == "" && cfg.DefaultProject == "" && cfg.DefaultRate == 0 {
-		fmt.Println("No defaults configured yet.")
-		fmt.Println("\nSet defaults with: worklog config set -n CONSULTANT -c CLIENT -p PROJECT -r RATE")
+		fmt.Println(i18n.T(i18n.KeyConfigNoDefaults))
+		fmt.Println(i18n.T(i18n.KeyConfigSetInstruction))
 		return nil
 	}
 
 	if cfg.DefaultConsultant != "" {
-		fmt.Printf("Default Consultant: %s\n", cfg.DefaultConsultant)
+		fmt.Printf(i18n.T(i18n.KeyConfigDefaultConsultant)+"\n", cfg.DefaultConsultant)
 	}
 	if cfg.DefaultClient != "" {
-		fmt.Printf("Default Client: %s\n", cfg.DefaultClient)
+		fmt.Printf(i18n.T(i18n.KeyConfigDefaultClient)+"\n", cfg.DefaultClient)
 	}
 	if cfg.DefaultProject != "" {
-		fmt.Printf("Default Project: %s\n", cfg.DefaultProject)
+		fmt.Printf(i18n.T(i18n.KeyConfigDefaultProject)+"\n", cfg.DefaultProject)
 	}
 	if cfg.DefaultRate > 0 {
-		fmt.Printf("Default Hourly Rate: %.2f kr/h\n", cfg.DefaultRate)
+		fmt.Printf(i18n.T(i18n.KeyConfigDefaultRate)+"\n", cfg.DefaultRate)
+	}
+	if cfg.Language != "" {
+		fmt.Printf(i18n.T(i18n.KeyConfigLanguage)+"\n", cfg.Language)
 	}
 
-	fmt.Println("\nDatabase Configuration:")
+	fmt.Print(i18n.T(i18n.KeyConfigDatabaseTitle))
 	if cfg.Database.Host != "" {
-		fmt.Printf("  Host: %s\n", cfg.Database.Host)
+		fmt.Printf(i18n.T(i18n.KeyConfigDatabaseHost)+"\n", cfg.Database.Host)
 	}
 	if cfg.Database.Port != "" {
-		fmt.Printf("  Port: %s\n", cfg.Database.Port)
+		fmt.Printf(i18n.T(i18n.KeyConfigDatabasePort)+"\n", cfg.Database.Port)
 	}
 	if cfg.Database.User != "" {
-		fmt.Printf("  User: %s\n", cfg.Database.User)
+		fmt.Printf(i18n.T(i18n.KeyConfigDatabaseUser)+"\n", cfg.Database.User)
 	}
 	if cfg.Database.Name != "" {
-		fmt.Printf("  Database: %s\n", cfg.Database.Name)
+		fmt.Printf(i18n.T(i18n.KeyConfigDatabaseName)+"\n", cfg.Database.Name)
 	}
 
 	return nil
 }
 
 func runConfigSet(cmd *cobra.Command, args []string) error {
-	if configConsultant == "" && configClient == "" && configProject == "" && configRate == 0 &&
+	if configConsultant == "" && configClient == "" && configProject == "" && configRate == 0 && configLanguage == "" &&
 		configDBHost == "" && configDBPort == "" && configDBUser == "" && configDBPassword == "" && configDBName == "" {
-		return fmt.Errorf("you must specify at least one value")
+		return fmt.Errorf(i18n.T(i18n.KeyErrMustSpecifyValue))
 	}
 
-	if err := config.SaveDefaults(configConsultant, configClient, configProject, configRate); err != nil {
+	if err := config.SaveDefaults(configConsultant, configClient, configProject, configRate, configLanguage); err != nil {
 		return err
 	}
 
@@ -115,11 +143,11 @@ func runConfigSet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println("  Configuration saved!")
-	fmt.Printf("  Consultant: %s\n", cfg.DefaultConsultant)
-	fmt.Printf("  Client: %s\n", cfg.DefaultClient)
-	fmt.Printf("  Project: %s\n", cfg.DefaultProject)
-	fmt.Printf("  Hourly Rate: %.2f kr/h\n", cfg.DefaultRate)
+	fmt.Println(i18n.T(i18n.KeyConfigSaved))
+	fmt.Printf(i18n.T(i18n.KeyConfigDefaultConsultant)+"\n", cfg.DefaultConsultant)
+	fmt.Printf(i18n.T(i18n.KeyConfigDefaultClient)+"\n", cfg.DefaultClient)
+	fmt.Printf(i18n.T(i18n.KeyConfigDefaultProject)+"\n", cfg.DefaultProject)
+	fmt.Printf(i18n.T(i18n.KeyConfigDefaultRate)+"\n", cfg.DefaultRate)
 
 	return nil
 }
@@ -129,7 +157,7 @@ func runConfigClear(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println("✓ Configuration cleared!")
+	fmt.Println(i18n.T(i18n.KeyConfigCleared))
 
 	return nil
 }

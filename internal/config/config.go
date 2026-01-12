@@ -15,6 +15,7 @@ type Config struct {
 	DefaultClient     string   `mapstructure:"default_client"`
 	DefaultProject    string   `mapstructure:"default_project"`
 	DefaultRate       float64  `mapstructure:"default_rate"`
+	Language          string   `mapstructure:"language"`
 	Database          Database `mapstructure:"database"`
 }
 
@@ -62,6 +63,7 @@ func Initialize() error {
 	v.BindEnv("default_client")
 	v.BindEnv("default_project")
 	v.BindEnv("default_rate")
+	v.BindEnv("language")
 
 	return nil
 }
@@ -76,7 +78,7 @@ func Get() (*Config, error) {
 }
 
 // SaveDefaults writes default values to config file
-func SaveDefaults(consultant, client, project string, rate float64) error {
+func SaveDefaults(consultant, client, project string, rate float64, language string) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return err
@@ -96,6 +98,9 @@ func SaveDefaults(consultant, client, project string, rate float64) error {
 	}
 	if rate > 0 {
 		v.Set("default_rate", rate)
+	}
+	if language != "" {
+		v.Set("language", language)
 	}
 
 	// Write to file

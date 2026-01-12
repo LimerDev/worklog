@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/LimerDev/worklog/internal/database"
+	"github.com/LimerDev/worklog/internal/i18n"
 	"github.com/LimerDev/worklog/internal/models"
 	"github.com/spf13/cobra"
 )
@@ -24,26 +25,24 @@ var (
 
 var getCmd = &cobra.Command{
 	Use:   "get",
-	Short: "Retrieve and filter work logs",
-	Long:  `Retrieve work logs with flexible filtering by consultant, project, customer, or date range.
-
-Default behavior (no filters): Shows entries for current month and year.`,
+	Short: "",
+	Long:  "",
 	RunE:  runGet,
 }
 
 func init() {
 	rootCmd.AddCommand(getCmd)
 
-	getCmd.Flags().StringVarP(&getConsultant, "consultant", "n", "", "Filter by consultant name")
-	getCmd.Flags().StringVarP(&getProject, "project", "p", "", "Filter by project name")
-	getCmd.Flags().StringVarP(&getCustomer, "customer", "c", "", "Filter by customer name")
-	getCmd.Flags().IntVarP(&getMonth, "month", "m", 0, "Filter by month (1-12)")
-	getCmd.Flags().StringVar(&getFromDate, "from", "", "Filter from date (YYYY-MM-DD)")
-	getCmd.Flags().StringVar(&getToDate, "to", "", "Filter to date (YYYY-MM-DD)")
-	getCmd.Flags().StringVarP(&getDate, "date", "D", "", "Filter by specific date (YYYY-MM-DD)")
-	getCmd.Flags().BoolVar(&getToday, "today", false, "Filter by today's date")
-	getCmd.Flags().IntVarP(&getWeek, "week", "w", 0, "Filter by week number (1-53)")
-	getCmd.Flags().IntVarP(&getYear, "year", "y", 0, "Filter by year (alone shows full year, or combined with month/week)")
+	getCmd.Flags().StringVarP(&getConsultant, "consultant", "n", "", "")
+	getCmd.Flags().StringVarP(&getProject, "project", "p", "", "")
+	getCmd.Flags().StringVarP(&getCustomer, "customer", "c", "", "")
+	getCmd.Flags().IntVarP(&getMonth, "month", "m", 0, "")
+	getCmd.Flags().StringVar(&getFromDate, "from", "", "")
+	getCmd.Flags().StringVar(&getToDate, "to", "", "")
+	getCmd.Flags().StringVarP(&getDate, "date", "D", "", "")
+	getCmd.Flags().BoolVar(&getToday, "today", false, "")
+	getCmd.Flags().IntVarP(&getWeek, "week", "w", 0, "")
+	getCmd.Flags().IntVarP(&getYear, "year", "y", 0, "")
 }
 
 func runGet(cmd *cobra.Command, args []string) error {
@@ -58,7 +57,7 @@ func runGet(cmd *cobra.Command, args []string) error {
 	// Handle week filter
 	if getWeek > 0 {
 		if getWeek < 1 || getWeek > 53 {
-			return fmt.Errorf("week number must be between 1 and 53")
+			return fmt.Errorf(i18n.T(i18n.KeyErrWeekRange))
 		}
 
 		year := getYear
@@ -84,14 +83,14 @@ func runGet(cmd *cobra.Command, args []string) error {
 	} else if getDate != "" {
 		parsedDate, err := time.Parse("2006-01-02", getDate)
 		if err != nil {
-			return fmt.Errorf("invalid date format for --date, use YYYY-MM-DD: %w", err)
+			return fmt.Errorf("%s: %w", i18n.T(i18n.KeyErrInvalidDateFormat), err)
 		}
 		startDate = parsedDate
 		endDate = parsedDate.AddDate(0, 0, 1)
 	} else if getMonth > 0 {
 		// Handle month filter
 		if getMonth < 1 || getMonth > 12 {
-			return fmt.Errorf("month number must be between 1 and 12")
+			return fmt.Errorf(i18n.T(i18n.KeyErrMonthRange))
 		}
 
 		year := getYear
@@ -110,14 +109,14 @@ func runGet(cmd *cobra.Command, args []string) error {
 		if getFromDate != "" {
 			parsedDate, err := time.Parse("2006-01-02", getFromDate)
 			if err != nil {
-				return fmt.Errorf("invalid date format for --from, use YYYY-MM-DD: %w", err)
+				return fmt.Errorf("%s: %w", i18n.T(i18n.KeyErrInvalidDateFormat), err)
 			}
 			startDate = parsedDate
 		}
 		if getToDate != "" {
 			parsedDate, err := time.Parse("2006-01-02", getToDate)
 			if err != nil {
-				return fmt.Errorf("invalid date format for --to, use YYYY-MM-DD: %w", err)
+				return fmt.Errorf("%s: %w", i18n.T(i18n.KeyErrInvalidDateFormat), err)
 			}
 			endDate = parsedDate.AddDate(0, 0, 1) // Include the entire day
 		}
@@ -134,11 +133,11 @@ func runGet(cmd *cobra.Command, args []string) error {
 	repo := database.NewRepository()
 	entries, err := repo.GetTimeEntriesByFilters(getConsultant, getProject, getCustomer, startDate, endDate)
 	if err != nil {
-		return fmt.Errorf("failed to fetch work logs: %w", err)
+		return fmt.Errorf("%s: %w", i18n.T(i18n.KeyErrFetchWorkLogs), err)
 	}
 
 	if len(entries) == 0 {
-		fmt.Println("No work logs found matching the filters.")
+		fmt.Println(i18n.T(i18n.KeyGetNoResults))
 		return nil
 	}
 
@@ -154,15 +153,15 @@ func displayTimeEntries(entries []models.TimeEntry) {
 		cost  float64
 	}
 
-	// Calculate column widths dynamically
-	dateWidth := len("DATE")
-	consultantWidth := len("CONSULTANT")
-	projectWidth := len("PROJECT")
-	customerWidth := len("CUSTOMER")
-	descriptionWidth := len("DESCRIPTION")
-	hoursWidth := len("HOURS")
-	rateWidth := len("RATE")
-	costWidth := len("COST")
+	// Calculate column widths dynamically based on translated headers
+	dateWidth := len(i18n.T(i18n.KeyGetHeaderDate))
+	consultantWidth := len(i18n.T(i18n.KeyGetHeaderConsultant))
+	projectWidth := len(i18n.T(i18n.KeyGetHeaderProject))
+	customerWidth := len(i18n.T(i18n.KeyGetHeaderCustomer))
+	descriptionWidth := len(i18n.T(i18n.KeyGetHeaderDescription))
+	hoursWidth := len(i18n.T(i18n.KeyGetHeaderHours))
+	rateWidth := len(i18n.T(i18n.KeyGetHeaderRate))
+	costWidth := len(i18n.T(i18n.KeyGetHeaderCost))
 
 	const (
 		maxDateWidth        = 10
@@ -230,14 +229,14 @@ func displayTimeEntries(entries []models.TimeEntry) {
 
 	// Print header
 	fmt.Printf("%-*s   %-*s   %-*s   %-*s   %-*s   %-*s   %-*s   %-*s\n",
-		dateWidth, "DATE",
-		consultantWidth, "CONSULTANT",
-		hoursWidth, "HOURS",
-		rateWidth, "RATE",
-		costWidth, "COST",
-		projectWidth, "PROJECT",
-		customerWidth, "CUSTOMER",
-		descriptionWidth, "DESCRIPTION")
+		dateWidth, i18n.T(i18n.KeyGetHeaderDate),
+		consultantWidth, i18n.T(i18n.KeyGetHeaderConsultant),
+		hoursWidth, i18n.T(i18n.KeyGetHeaderHours),
+		rateWidth, i18n.T(i18n.KeyGetHeaderRate),
+		costWidth, i18n.T(i18n.KeyGetHeaderCost),
+		projectWidth, i18n.T(i18n.KeyGetHeaderProject),
+		customerWidth, i18n.T(i18n.KeyGetHeaderCustomer),
+		descriptionWidth, i18n.T(i18n.KeyGetHeaderDescription))
 
 	for _, entry := range entries {
 		projectName := entry.Project.Name
@@ -282,8 +281,8 @@ func displayTimeEntries(entries []models.TimeEntry) {
 		customerStats[customerName].cost += cost
 	}
 
-	fmt.Printf("\nTotal hours: %.2f\n", totalHours)
-	fmt.Printf("Total cost: %.2f kr\n", totalCost)
+	fmt.Printf("\n%s: %.2f\n", i18n.T(i18n.KeyGetTotalHours), totalHours)
+	fmt.Printf("%s: %.2f kr\n", i18n.T(i18n.KeyGetTotalCost), totalCost)
 }
 
 func truncate(s string, max int) string {
@@ -291,4 +290,20 @@ func truncate(s string, max int) string {
 		return s
 	}
 	return s[:max-3] + "..."
+}
+
+func localizeGetCommand() {
+	getCmd.Short = i18n.T(i18n.KeyGetShort)
+	getCmd.Long = i18n.T(i18n.KeyGetLong)
+
+	getCmd.Flags().Lookup("consultant").Usage = i18n.T(i18n.KeyGetFlagConsultant)
+	getCmd.Flags().Lookup("project").Usage = i18n.T(i18n.KeyGetFlagProject)
+	getCmd.Flags().Lookup("customer").Usage = i18n.T(i18n.KeyGetFlagCustomer)
+	getCmd.Flags().Lookup("month").Usage = i18n.T(i18n.KeyGetFlagMonth)
+	getCmd.Flags().Lookup("from").Usage = i18n.T(i18n.KeyGetFlagFromDate)
+	getCmd.Flags().Lookup("to").Usage = i18n.T(i18n.KeyGetFlagToDate)
+	getCmd.Flags().Lookup("date").Usage = i18n.T(i18n.KeyGetFlagDate)
+	getCmd.Flags().Lookup("today").Usage = i18n.T(i18n.KeyGetFlagToday)
+	getCmd.Flags().Lookup("week").Usage = i18n.T(i18n.KeyGetFlagWeek)
+	getCmd.Flags().Lookup("year").Usage = i18n.T(i18n.KeyGetFlagYear)
 }
