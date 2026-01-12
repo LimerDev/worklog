@@ -1,0 +1,111 @@
+name: Database Backup
+
+on:
+  schedule:
+    # Runs daily at 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # Allows manual triggering
+
+concurrency:
+  group: database-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: arc-runner-set
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Create database backup
+        id: backup
+        env:
+          BACKUP_TIMESTAMP: ${{ github.run_id }}-$(date +%Y%m%d-%H%M%S)
+          POSTGRES_PASSWORD: ${{ secrets.WORKLOG_POSTGRES_PASSWORD }}
+        run: |
+          echo "Creating backup with timestamp: ${BACKUP_TIMESTAMP}"
+
+          # Create backup directory
+          mkdir -p backups
+
+          # Create backup using pg_dump via kubectl exec
+          kubectl exec -n worklog deployment/postgres -- env \
+            PGPASSWORD="${POSTGRES_PASSWORD}" \
+            pg_dump -U worklog -d worklog --format=custom --compress=9 \
+            > "backups/worklog-backup-${BACKUP_TIMESTAMP}.dump"
+
+          # Verify backup file was created and is not empty
+          if [ ! -s "backups/worklog-backup-${BACKUP_TIMESTAMP}.dump" ]; then
+            echo "Error: Backup file is empty or was not created"
+            exit 1
+          fi
+
+          # Get backup file size for logging
+          BACKUP_SIZE=$(du -h "backups/worklog-backup-${BACKUP_TIMESTAMP}.dump" | cut -f1)
+          echo "Backup created successfully (size: ${BACKUP_SIZE})"
+          echo "backup_file=worklog-backup-${BACKUP_TIMESTAMP}.dump" >> $GITHUB_OUTPUT
+          echo "backup_size=${BACKUP_SIZE}" >> $GITHUB_OUTPUT
+
+      - name: Upload backup to S3
+        env:
+          S3_BUCKET: ${{ secrets.WORKLOG_BACKUP_S3_BUCKET }}
+          BACKUP_FILE: ${{ steps.backup.outputs.backup_file }}
+        run: |
+          echo "Uploading ${BACKUP_FILE} to s3://${S3_BUCKET}/worklog/"
+
+          # Upload to S3 with metadata
+          aws s3 cp "backups/${BACKUP_FILE}" "s3://${S3_BUCKET}/worklog/${BACKUP_FILE}" \
+            --metadata "github-run-id=${{ github.run_id }},backup-date=$(date -u +%Y-%m-%d),database=worklog" \
+            --storage-class STANDARD_IA
+
+          echo "Backup uploaded successfully"
+
+      - name: Verify backup in S3
+        env:
+          S3_BUCKET: ${{ secrets.WORKLOG_BACKUP_S3_BUCKET }}
+          BACKUP_FILE: ${{ steps.backup.outputs.backup_file }}
+        run: |
+          echo "Verifying backup in S3..."
+
+          # Check if file exists in S3
+          if aws s3 ls "s3://${S3_BUCKET}/worklog/${BACKUP_FILE}" > /dev/null 2>&1; then
+            echo "Backup verified in S3"
+            aws s3 ls "s3://${S3_BUCKET}/worklog/${BACKUP_FILE}" --human-readable
+          else
+            echo "Error: Backup not found in S3"
+            exit 1
+          fi
+
+      - name: Cleanup local backup
+        if: always()
+        run: |
+          echo "Cleaning up local backup files..."
+          rm -rf backups/
+
+      - name: Create backup summary
+        if: success()
+        run: |
+          echo "## Database Backup Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Backup Details:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Database: worklog" >> $GITHUB_STEP_SUMMARY
+          echo "- Timestamp: $(date -u +%Y-%m-%d\ %H:%M:%S\ UTC)" >> $GITHUB_STEP_SUMMARY
+          echo "- File: ${{ steps.backup.outputs.backup_file }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Size: ${{ steps.backup.outputs.backup_size }}" >> $GITHUB_STEP_SUMMARY
+          echo "- S3 Bucket: s3://${{ secrets.WORKLOG_BACKUP_S3_BUCKET }}/worklog/" >> $GITHUB_STEP_SUMMARY
+          echo "- Retention: 90 days" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "## Database Backup Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The database backup process failed. Please check the logs above for details." >> $GITHUB_STEP_SUMMARY
