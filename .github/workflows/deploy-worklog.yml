@@ -1,0 +1,83 @@
+name: Deploy Worklog
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/deploy-worklog.yml'
+      - 'k8s/**'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-worklog
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    runs-on: arc-runner-set
+    outputs:
+      has_drift: ${{ steps.check-drift.outputs.has_drift }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for drift
+        id: check-drift
+        working-directory: k8s
+        run: |
+          echo "## Drift Detection" >> $GITHUB_STEP_SUMMARY
+          echo '```diff' >> $GITHUB_STEP_SUMMARY
+          if just drift >> $GITHUB_STEP_SUMMARY 2>&1; then
+            echo "has_drift=false" >> $GITHUB_OUTPUT
+            echo "No drift detected" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "has_drift=true" >> $GITHUB_OUTPUT
+          fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  approval:
+    runs-on: ubuntu-latest
+    needs: drift
+    if: needs.drift.outputs.has_drift == 'true'
+    permissions:
+      issues: write
+    steps:
+      - name: Wait for approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: niklaspalmgren
+          minimum-approvals: 1
+          issue-title: "Deploy Worklog to Production"
+          issue-body: |
+            ### Deployment Approval Required
+
+            **Component:** Worklog
+            **Triggered by:** @${{ github.actor }}
+
+            Please review the [drift detection results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) before approving.
+
+  deploy:
+    runs-on: arc-runner-set
+    needs: [drift, approval]
+    if: success() && needs.drift.result == 'success'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy secret
+        working-directory: k8s
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.WORKLOG_POSTGRES_PASSWORD }}
+        run: just secret "$POSTGRES_PASSWORD"
+
+      - name: Deploy worklog
+        working-directory: k8s
+        run: just deploy
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/postgres -n worklog --timeout=5m
+          kubectl get pods -n worklog
