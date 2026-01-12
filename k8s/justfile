@@ -1,0 +1,26 @@
+# List available commands
+default:
+    @just --list
+
+# Create postgres secret (run before deploy)
+secret postgres_password:
+    kubectl create secret generic postgres-secret \
+        --from-literal=POSTGRES_PASSWORD="{{postgres_password}}" \
+        --namespace=worklog \
+        --dry-run=client -o yaml | kubectl apply -f -
+
+# Deploy worklog database to the cluster
+deploy:
+    kubectl apply -k .
+
+# Show diff between local manifests and deployed resources
+drift:
+    @kubectl diff -k .
+
+# Restart worklog database deployment
+restart:
+    kubectl rollout restart deployment/postgres -n worklog
+
+# Delete worklog from cluster
+destroy:
+    kubectl delete -k . --ignore-not-found
