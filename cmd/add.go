@@ -79,16 +79,16 @@ func runAdd(cmd *cobra.Command, args []string) error {
 
 	// Validate required fields
 	if consultant == "" {
-		return fmt.Errorf(i18n.T(i18n.KeyErrConsultantRequired))
+		return fmt.Errorf("%s", i18n.T(i18n.KeyErrConsultantRequired))
 	}
 	if client == "" {
-		return fmt.Errorf(i18n.T(i18n.KeyErrCustomerRequired))
+		return fmt.Errorf("%s", i18n.T(i18n.KeyErrCustomerRequired))
 	}
 	if project == "" {
-		return fmt.Errorf(i18n.T(i18n.KeyErrProjectRequired))
+		return fmt.Errorf("%s", i18n.T(i18n.KeyErrProjectRequired))
 	}
 	if hourlyRate <= 0 {
-		return fmt.Errorf(i18n.T(i18n.KeyErrRateRequired))
+		return fmt.Errorf("%s", i18n.T(i18n.KeyErrRateRequired))
 	}
 
 	var entryDate time.Time
@@ -105,7 +105,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	}
 
 	if hours <= 0 {
-		return fmt.Errorf(i18n.T(i18n.KeyErrHoursMustBePositive))
+		return fmt.Errorf("%s", i18n.T(i18n.KeyErrHoursMustBePositive))
 	}
 
 	repo := database.NewRepository()

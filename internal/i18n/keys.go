@@ -47,6 +47,8 @@ const (
 	KeyGetFlagToday      = "get.flag.today"
 	KeyGetFlagWeek       = "get.flag.week"
 	KeyGetFlagYear       = "get.flag.year"
+	KeyGetFlagOutput     = "get.flag.output"
+	KeyGetFlagOutputFile = "get.flag.output_file"
 
 	// Get table headers
 	KeyGetHeaderDate        = "get.header.date"

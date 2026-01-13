@@ -42,6 +42,8 @@
 "get.flag.today" = "Filtrera efter dagens datum"
 "get.flag.week" = "Filtrera efter veckonummer (1-53)"
 "get.flag.year" = "Filtrera efter år (ensamt visar hela året, eller kombinerat med månad/vecka)"
+"get.flag.output" = "Utdataformat (table, csv, json)"
+"get.flag.output_file" = "Skriv output till fil istället för stdout"
 
 "get.header.date" = "DATUM"
 "get.header.consultant" = "KONSULT"
@@ -54,7 +56,7 @@
 
 "export.short" = "Exportera arbetsloggar till fil"
 "export.long" = "Exportera arbetsloggar med flexibel filtrering till CSV-format."
-"export.success" = "✓ Exporterade %d arbetsloggar till %s"
+"export.success" = "Exporterade %d arbetsloggar till %s"
 "export.total" = "TOTALT"
 
 "export.flag.output" = "Utdatafil (standard: stdout)"
@@ -71,7 +73,7 @@
 "config.default_rate" = "Standard timtaxa: %.2f kr/h"
 "config.language" = "Språk: %s"
 "config.saved" = "  Konfiguration sparad!"
-"config.cleared" = "✓ Konfiguration rensad!"
+"config.cleared" = "Konfiguration rensad!"
 
 "config.flag.consultant" = "Standardkonsultnamn"
 "config.flag.client" = "Standardkundnamn"

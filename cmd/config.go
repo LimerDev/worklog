@@ -131,7 +131,7 @@ func runConfigShow(cmd *cobra.Command, args []string) error {
 func runConfigSet(cmd *cobra.Command, args []string) error {
 	if configConsultant == "" && configClient == "" && configProject == "" && configRate == 0 && configLanguage == "" &&
 		configDBHost == "" && configDBPort == "" && configDBUser == "" && configDBPassword == "" && configDBName == "" {
-		return fmt.Errorf(i18n.T(i18n.KeyErrMustSpecifyValue))
+		return fmt.Errorf("%s", i18n.T(i18n.KeyErrMustSpecifyValue))
 	}
 
 	if err := config.SaveDefaults(configConsultant, configClient, configProject, configRate, configLanguage); err != nil {

@@ -42,6 +42,8 @@
 "get.flag.today" = "Filter by today's date"
 "get.flag.week" = "Filter by week number (1-53)"
 "get.flag.year" = "Filter by year (alone shows full year, or combined with month/week)"
+"get.flag.output" = "Output format (table, csv, json)"
+"get.flag.output_file" = "Write output to file instead of stdout"
 
 "get.header.date" = "DATE"
 "get.header.consultant" = "CONSULTANT"
@@ -54,7 +56,7 @@
 
 "export.short" = "Export work logs to file"
 "export.long" = "Export work logs with flexible filtering to CSV format."
-"export.success" = "✓ Exported %d work logs to %s"
+"export.success" = "Exported %d work logs to %s"
 "export.total" = "TOTAL"
 
 "export.flag.output" = "Output file (default: stdout)"
@@ -71,7 +73,7 @@
 "config.default_rate" = "Default Hourly Rate: %.2f kr/h"
 "config.language" = "Language: %s"
 "config.saved" = "  Configuration saved!"
-"config.cleared" = "✓ Configuration cleared!"
+"config.cleared" = "Configuration cleared!"
 
 "config.flag.consultant" = "Default consultant name"
 "config.flag.client" = "Default client name"
