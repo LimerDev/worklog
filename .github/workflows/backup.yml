@@ -1,4 +1,4 @@
-name: Database Backup
+name: Backup
 
 on:
   schedule:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:  # Allows manual triggering
 
 concurrency:
-  group: database-backup
+  group: backup
   cancel-in-progress: false
 
 jobs:

@@ -1,16 +1,16 @@
-name: Deploy Worklog
+name: Deploy
 
 on:
   push:
     branches:
       - main
     paths:
-      - '.github/workflows/deploy-worklog.yml'
+      - '.github/workflows/deploy.yml'
       - 'k8s/**'
   workflow_dispatch:
 
 concurrency:
-  group: deploy-worklog
+  group: deploy
   cancel-in-progress: false
 
 jobs:
