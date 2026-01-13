@@ -54,13 +54,8 @@
 "get.header.customer" = "CUSTOMER"
 "get.header.description" = "DESCRIPTION"
 
-"export.short" = "Export work logs to file"
-"export.long" = "Export work logs with flexible filtering to CSV format."
 "export.success" = "Exported %d work logs to %s"
 "export.total" = "TOTAL"
-
-"export.flag.output" = "Output file (default: stdout)"
-"export.flag.format" = "Export format (csv)"
 
 "config.short" = "Manage default values for consultant, client, and project"
 "config.long" = "Set or view default values to speed up time entry registration"

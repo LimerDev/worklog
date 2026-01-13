@@ -54,13 +54,8 @@
 "get.header.customer" = "KUND"
 "get.header.description" = "BESKRIVNING"
 
-"export.short" = "Exportera arbetsloggar till fil"
-"export.long" = "Exportera arbetsloggar med flexibel filtrering till CSV-format."
 "export.success" = "Exporterade %d arbetsloggar till %s"
 "export.total" = "TOTALT"
-
-"export.flag.output" = "Utdatafil (standard: stdout)"
-"export.flag.format" = "Exportformat (csv)"
 
 "config.short" = "Hantera standardvärden för konsult, kund och projekt"
 "config.long" = "Ställ in eller visa standardvärden för att påskynda tidsregistrering"

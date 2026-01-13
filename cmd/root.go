@@ -95,8 +95,6 @@ func localizeCommand(cmd *cobra.Command) {
 		localizeAddCommand()
 	case "get":
 		localizeGetCommand()
-	case "export":
-		localizeExportCommand()
 	case "config":
 		localizeConfigCommand()
 	}

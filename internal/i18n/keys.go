@@ -60,13 +60,9 @@ const (
 	KeyGetHeaderCustomer    = "get.header.customer"
 	KeyGetHeaderDescription = "get.header.description"
 
-	// Export command
-	KeyExportShort      = "export.short"
-	KeyExportLong       = "export.long"
-	KeyExportSuccess    = "export.success"
-	KeyExportTotal      = "export.total"
-	KeyExportFlagOutput = "export.flag.output"
-	KeyExportFlagFormat = "export.flag.format"
+	// Export (used by get command output)
+	KeyExportSuccess = "export.success"
+	KeyExportTotal   = "export.total"
 
 	// Config command
 	KeyConfigShort               = "config.short"
@@ -128,10 +124,10 @@ const (
 	KeyErrUpdateWorkLog       = "error.update_worklog"
 	KeyErrSaveWorkLog         = "error.save_worklog"
 
-	// Error messages - get/export commands
+	// Error messages - get command
 	KeyErrFetchWorkLogs = "error.fetch_worklogs"
 
-	// Error messages - export command
+	// Error messages - CSV export
 	KeyErrCreateOutputFile = "error.create_output_file"
 	KeyErrWriteCSVHeader   = "error.write_csv_header"
 	KeyErrWriteCSVRow      = "error.write_csv_row"
